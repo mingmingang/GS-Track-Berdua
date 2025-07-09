@@ -20,7 +20,6 @@ import Login from "./Login";
 import { AuthContext } from "../backbone/AuthContext";
 import Navbar from "../backbone/Navbar";
 
-
 const screenWidth = Dimensions.get("window").width;
 const itemWidth = (screenWidth - 40) / 4;
 
@@ -105,7 +104,7 @@ export default function HomeScreen() {
               />
               <View style={styles.headerText}>
                 <Text style={styles.welcomeText}>Selamat Datang Kembali</Text>
-                <Text style={styles.userName}>{user?.nama || "Pengguna"}!</Text>
+                <Text style={styles.userName}>{user?.namaKaryawan || "Pengguna"}!</Text>
               </View>
             </View>
             <TouchableOpacity>
@@ -164,13 +163,19 @@ export default function HomeScreen() {
 
             const handlePress = () => {
               if (item.title === "Cuti") {
-              navigation.navigate("Cuti", { user: user });
+                navigation.navigate("Cuti", { user: user });
               }
               if (item.title === "IDL") {
                 navigation.navigate("IDL");
               }
               if (item.title === "IMP") {
                 navigation.navigate("IMP");
+              }
+              if (item.title === "Reimburse Obat") {
+                navigation.navigate("Reimbursement");
+              }
+              if (item.title === "Permintaan") {
+                navigation.navigate("PermintaanBerkas");
               }
             };
 
@@ -187,7 +192,7 @@ export default function HomeScreen() {
           })}
         </View>
       </ScrollView>
-      <Navbar/>
+      <Navbar />
     </View>
   );
 }
@@ -314,5 +319,5 @@ const styles = StyleSheet.create({
     backgroundColor: "#A4DE8F",
     borderRadius: 10,
   },
-  vaksinText: { color: "#fff", fontWeight: "bold", textAlign: "center" }
+  vaksinText: { color: "#fff", fontWeight: "bold", textAlign: "center" },
 });

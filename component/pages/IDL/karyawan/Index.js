@@ -10,123 +10,29 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { ImageBackground } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import PanduanIDL from "../../../part/PanduanIDL";
+import { getServerIP } from "../../../backbone/ApiConfig";
 
-const dataIDL = [
-  {
-    id: "007970",
-    nama: "Amalia Tresna",
-    alasan: "Meeting Proyek",
-    status: "Menunggu Persetujuan",
-    tanggal: "12 Jan 2025",
-    statusColor: "#2196F3",
-    labelColor: "#2196F3",
-  },
-  {
-    id: "008006",
-    nama: "Amalia Tresna",
-    alasan: "Forum Diskusi",
-    status: "Menunggu Persetujuan",
-    tanggal: "02 Mei 2025",
-    statusColor: "#2196F3",
-    labelColor: "#2196F3",
-  },
-  {
-    id: "008007",
-    nama: "Amalia Tresna",
-    alasan: "Pengajuan Cuti",
-    status: "Menunggu Persetujuan",
-    tanggal: "10 Mei 2025",
-    statusColor: "#2196F3",
-    labelColor: "#2196F3",
-  },
-
-  // Belum Diverifikasi
-  {
-    id: "007971",
-    nama: "Amalia Tresna",
-    alasan: "Gemba Supplier",
-    status: "Belum Diverifikasi",
-    tanggal: "12 Okt 2025",
-    statusColor: "#FFEB3B",
-    labelColor: "#FFEB3B",
-  },
-  {
-    id: "008002",
-    nama: "Amalia Tresna",
-    alasan: "Audit Internal",
-    status: "Belum Diverifikasi",
-    tanggal: "22 Feb 2025",
-    statusColor: "#FFEB3B",
-    labelColor: "#FFEB3B",
-  },
-  {
-    id: "008005",
-    nama: "Amalia Tresna",
-    alasan: "Kegiatan Sosial",
-    status: "Belum Diverifikasi",
-    tanggal: "28 Apr 2025",
-    statusColor: "#FFEB3B",
-    labelColor: "#FFEB3B",
-  },
-
-  // Selesai
-  {
-    id: "007972",
-    nama: "Amalia Tresna",
-    alasan: "Meeting",
-    status: "Selesai",
-    tanggal: "05 Aug 2025",
-    statusColor: "#4CAF50",
-    labelColor: "#4CAF50",
-  },
-  {
-    id: "008003",
-    nama: "Amalia Tresna",
-    alasan: "Kunjungan Pabrik",
-    status: "Selesai",
-    tanggal: "15 Mar 2025",
-    statusColor: "#4CAF50",
-    labelColor: "#4CAF50",
-  },
-  {
-    id: "008008",
-    nama: "Amalia Tresna",
-    alasan: "Pelatihan Eksternal",
-    status: "Selesai",
-    tanggal: "30 Apr 2025",
-    statusColor: "#4CAF50",
-    labelColor: "#4CAF50",
-  },
-
-  // Ditolak
-  {
-    id: "007973",
-    nama: "Amalia Tresna",
-    alasan: "Jalan-Jalan",
-    status: "Ditolak",
-    tanggal: "05 Aug 2025",
-    statusColor: "#F44336",
-    labelColor: "#F44336",
-  },
-  {
-    id: "008004",
-    nama: "Amalia Tresna",
-    alasan: "Pribadi (Libur)",
-    status: "Ditolak",
-    tanggal: "20 Mar 2025",
-    statusColor: "#F44336",
-    labelColor: "#F44336",
-  },
-  {
-    id: "008009",
-    nama: "Amalia Tresna",
-    alasan: "Acara Keluarga",
-    status: "Ditolak",
-    tanggal: "12 Apr 2025",
-    statusColor: "#F44336",
-    labelColor: "#F44336",
-  },
-];
+const formatTanggal = (tanggalString) => {
+  const bulanIndo = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "Mei",
+    "Jun",
+    "Jul",
+    "Agu",
+    "Sep",
+    "Okt",
+    "Nov",
+    "Des",
+  ];
+  const tanggal = new Date(tanggalString);
+  const hari = tanggal.getDate();
+  const bulan = bulanIndo[tanggal.getMonth()];
+  const tahun = tanggal.getFullYear();
+  return `${hari} ${bulan} ${tahun}`;
+};
 
 const IDLScreen = () => {
   const navigation = useNavigation();

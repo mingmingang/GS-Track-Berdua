@@ -1,7 +1,16 @@
 {
   "expo": {
-    "name": "GS-Track-Mobile",
-    "slug": "GS-Track-Mobile",
+     "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them.",
+          "cameraPermission": "The app accesses your camera to let you take photos."
+        }
+      ]
+    ],
+    "name": "GS-Track-Berdua",
+    "slug": "GS-Track-Berdua",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

@@ -177,8 +177,8 @@ const styles = StyleSheet.create({
   },
   statusLabel: {
     color: "#6B7280",
-    fontWeight: "600",
-    fontFamily: "Poppins_600SemiBold",
+    fontWeight: "Bold",
+    fontFamily: "Poppins_700Bold",
   },
   statusBadge: {
     backgroundColor: "#2196F3",
@@ -188,9 +188,9 @@ const styles = StyleSheet.create({
   },
   statusText: {
     color: "white",
-    fontWeight: "600",
-    fontSize: 12,
-    fontFamily: "Poppins_600SemiBold",
+    fontWeight: "bold",
+    fontSize: 13,
+    fontFamily: "Poppins_700Bold",
   },
   card: {
     backgroundColor: "#fff",
@@ -205,9 +205,9 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontWeight: "bold",
-    marginBottom: 16,
+    marginBottom: 12,
     fontSize: 16,
-    color: "#111827",
+    color: "#333",
     fontFamily: "Poppins_700Bold",
   },
   detailRow: {
@@ -217,9 +217,10 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   label: {
-    color: "#9CA3AF",
-    fontSize: 13,
-    fontFamily: "Poppins_400Regular",
+    color: "#A0AEC0",
+    fontSize: 14,
+    marginBottom: 6,
+    fontFamily: "Poppins_600SemiBold",
     flex: 1,
   },
   value: {

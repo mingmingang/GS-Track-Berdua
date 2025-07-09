@@ -4,12 +4,14 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  ImageBackground,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import { AuthContext } from "../../../backbone/AuthContext";
+import { getServerIP } from "../../../backbone/ApiConfig";
+import { ActivityIndicator } from "react-native";
+import Header from "../../../backbone/Header";
 
 export default function DetailCutiScreen() {
   const navigation = useNavigation();
@@ -18,16 +20,24 @@ export default function DetailCutiScreen() {
   const { user } = useContext(AuthContext);
 
   const [cuti, setCuti] = useState(null);
-  useEffect(() => {
-    if (!cutiId) return;
 
-    fetch(`http://172.20.10.2:8080/cuti/${cutiId}`)
-      .then((res) => res.json())
-      .then((data) => setCuti(data))
-      .catch((err) => {
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!cutiId) return;
+
+      try {
+        const ip = await getServerIP();
+        const response = await fetch(`http://${ip}:8080/cuti/${cutiId}`);
+        const data = await response.json();
+
+        setCuti(data);
+      } catch (err) {
         console.error("Gagal mengambil detail cuti", err);
         setCuti(null);
-      });
+      }
+    };
+
+    fetchData();
   }, [cutiId]);
 
   const formatTanggal = (tanggalStr) => {
@@ -52,7 +62,8 @@ export default function DetailCutiScreen() {
   if (!cuti) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Memuat detail cuti...</Text>
+        <ActivityIndicator size="large" color="#1E2D56" />
+        <Text style={{ marginTop: 10 }}>Memuat detail cuti...</Text>
       </View>
     );
   }
@@ -60,37 +71,23 @@ export default function DetailCutiScreen() {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case "terlaksana":
-        return "#4CAF50"; // Hijau
+        return "#4CAF50";
       case "belum terlaksana":
-        return "#FFC107"; // Kuning
+        return "#FFC107";
       case "menunggu persetujuan":
       case "menunggu":
-        return "#2196F3"; // Biru
+        return "#2196F3";
+        case "dibatalkan":
+        return "red";
       default:
-        return "#9E9E9E"; // Abu
+        return "#9E9E9E";
     }
   };
 
   return (
     <ScrollView style={styles.container}>
-      {/* Header */}
-      <ImageBackground
-        source={require("../../../../assets/bg_navbar.png")}
-        style={styles.header}
-        resizeMode="cover"
-      >
-        <Ionicons
-          name="arrow-back"
-          size={24}
-          color="#fff"
-          style={{ paddingLeft: 20 }}
-          onPress={() => navigation.goBack()}
-        />
-        <Text style={styles.headerText}>Detail Cuti</Text>
-        <View style={{ width: 24 }} />
-      </ImageBackground>
-
-      {/* Status Cuti */}
+      <Header title="Detail Cuti"/>
+      
       <View style={styles.statusBox}>
         <Text style={styles.statusLabel}>Status Cuti</Text>
         <View
@@ -113,17 +110,17 @@ export default function DetailCutiScreen() {
 
         <View style={styles.detailRow}>
           <Text style={styles.label}>Plant</Text>
-          <Text style={styles.value}>{user.lokasiKerja || "-"}</Text>
+          <Text style={styles.value}>{user.plant || "-"}</Text>
         </View>
 
         <View style={styles.detailRow}>
           <Text style={styles.label}>Pengajuan Oleh</Text>
-          <Text style={styles.value}>{user.nama || "-"}</Text>
+          <Text style={styles.value}>{user.namaKaryawan || "-"}</Text>
         </View>
 
         <View style={styles.detailRow}>
           <Text style={styles.label}>Tipe Cuti</Text>
-          <Text style={styles.value}>{cuti.jenisCuti}</Text>
+          <Text style={styles.value}>{cuti.tipeCuti}</Text>
         </View>
 
         <View style={styles.detailRow}>
@@ -142,15 +139,35 @@ export default function DetailCutiScreen() {
         </View>
       </View>
 
-      {/* Keterangan Tambahan */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Keterangan Tambahan</Text>
 
         <View style={styles.detailKeternagan}>
-          <Text style={styles.label}>Keterangan</Text>
           <Text style={styles.value}>{cuti.alasan || "-"}</Text>
         </View>
       </View>
+
+      {cuti.lampiran && (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Berkas Lampiran</Text>
+
+          <View style={styles.detailKeternagan}>
+            <Text style={styles.label}>Nama File</Text>
+            <Text style={styles.value}>{cuti.lampiran}</Text>
+
+            <Text
+              style={[styles.value, { color: "blue", marginTop: 8 }]}
+              onPress={() => {
+                if (cuti.fileUri) {
+                  Linking.openURL(cuti.fileUri);
+                }
+              }}
+            >
+              Lihat Lampiran
+            </Text>
+          </View>
+        </View>
+      )}
     </ScrollView>
   );
 }

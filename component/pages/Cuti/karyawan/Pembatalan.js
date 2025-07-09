@@ -8,16 +8,19 @@ import {
   ScrollView,
   ImageBackground,
 } from "react-native";
-import CheckBox from "@react-native-community/checkbox";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useEffect } from "react";
 import { AuthContext } from "../../../backbone/AuthContext";
+import Header from "../../../backbone/Header";
+import { getServerIP } from "../../../backbone/ApiConfig";
+import { ActivityIndicator } from "react-native";
 
 export default function PembatalanCutiScreen() {
   const [checkedDates, setCheckedDates] = useState({});
   const navigation = useNavigation();
   const [alasan, setAlasan] = useState("");
+  const [remember, setRemember] = useState(false);
 
   const tanggalCuti = ["19 Mei 2025", "20 Mei 2025", "21 Mei 2025"];
 
@@ -42,15 +45,23 @@ export default function PembatalanCutiScreen() {
 
   const [cuti, setCuti] = useState(null);
   useEffect(() => {
-    if (!cutiId) return;
+    const fetchData = async () => {
+      if (!cutiId) return;
 
-    fetch(`http://172.20.10.2:8080/cuti/${cutiId}`)
-      .then((res) => res.json())
-      .then((data) => setCuti(data))
-      .catch((err) => {
+      try {
+        const ip = await getServerIP();
+        const response = await fetch(`http://${ip}:8080/cuti/${cutiId}`);
+        const data = await response.json();
+        console.log("data", data);
+
+        setCuti(data);
+      } catch (err) {
         console.error("Gagal mengambil detail cuti", err);
         setCuti(null);
-      });
+      }
+    };
+
+    fetchData();
   }, [cutiId]);
 
   const formatTanggal = (tanggalStr) => {
@@ -72,31 +83,32 @@ export default function PembatalanCutiScreen() {
     return `${tgl.getDate()} ${bulanIndo[tgl.getMonth()]} ${tgl.getFullYear()}`;
   };
 
+  const generateTanggalCuti = (start, end) => {
+    const dates = [];
+    const current = new Date(start);
+    const endDate = new Date(end);
+
+    while (current <= endDate) {
+      dates.push(new Date(current)); // simpan sebagai Date object
+      current.setDate(current.getDate() + 1);
+    }
+
+    return dates;
+  };
+
   if (!cuti) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Memuat detail cuti...</Text>
+        <ActivityIndicator size="large" color="#1E2D56" />
+        <Text style={{ marginTop: 10 }}>Memuat detail cuti...</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <ImageBackground
-        source={require("../../../../assets/bg_navbar.png")}
-        style={styles.header}
-        resizeMode="cover"
-      >
-        <Ionicons
-          name="arrow-back"
-          size={24}
-          color="#fff"
-          style={{ paddingLeft: "20" }}
-          onPress={() => navigation.goBack()}
-        />
-        <Text style={styles.headerText}>Pembatalan Cuti</Text>
-        <View style={{ width: 24 }} />
-      </ImageBackground>
+    <>
+      <Header title="Pembatalan Cuti" />
+      <ScrollView style={styles.container}>
 
       {/* Form */}
       <View style={styles.form}>
@@ -110,14 +122,14 @@ export default function PembatalanCutiScreen() {
         <Text style={styles.label}>Tipe Cuti</Text>
         <TextInput
           style={styles.disabledInput}
-          value={cuti.jenisCuti}
+          value={cuti.tipeCuti}
           editable={false}
         />
 
         <Text style={styles.label}>Pengajuan Oleh</Text>
         <TextInput
           style={styles.disabledInput}
-          value={user.nama || "-"}
+          value={user.namaKaryawan || "-"}
           editable={false}
         />
 
@@ -125,12 +137,12 @@ export default function PembatalanCutiScreen() {
         <View style={styles.row}>
           <TextInput
             style={styles.dateInput}
-            value={formatTanggal(cuti.tanggalAwal)}
+            value={formatTanggal(cuti.mulaiDari)}
             editable={false}
           />
           <TextInput
             style={styles.dateInput}
-            value={formatTanggal(cuti.tanggalAkhir)}
+            value={formatTanggal(cuti.sampaiDengan)}
             editable={false}
           />
         </View>
@@ -139,18 +151,33 @@ export default function PembatalanCutiScreen() {
         <View style={styles.table}>
           <View style={styles.tableHeader}>
             <Text style={styles.tableHeaderText}>Tanggal</Text>
-            <Text style={styles.tableHeaderText}>Check</Text>
+            <Text style={styles.tableHeaderText}>Batalkan</Text>
           </View>
-          {tanggalCuti.map((tgl, idx) => (
-            <View key={idx} style={styles.tableRow}>
-              <Text style={styles.tableText}>{tgl}</Text>
-              {/* <CheckBox
-                value={checkedDates[tgl] || false}
-                onValueChange={() => toggleDate(tgl)}
-                tintColors={{ true: "#1E2D56", false: "#aaa" }}
-              /> */}
-            </View>
-          ))}
+          {generateTanggalCuti(cuti.mulaiDari, cuti.sampaiDengan).map(
+            (tgl, idx) => {
+              const tanggalStr = formatTanggal(tgl);
+              return (
+                <View key={idx} style={styles.tableRow}>
+                  <Text style={styles.tableText}>{tanggalStr}</Text>
+                  <TouchableOpacity
+                    onPress={() => toggleDate(tanggalStr)}
+                    style={[
+                      styles.checkbox,
+                      {
+                        backgroundColor: checkedDates[tanggalStr]
+                          ? "#21376A"
+                          : "#fff",
+                      },
+                    ]}
+                  >
+                    {checkedDates[tanggalStr] && (
+                      <MaterialIcons name="check" size={16} color="white" />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              );
+            }
+          )}
         </View>
 
         <Text style={styles.label}>Alasan Pembatalan</Text>
@@ -162,12 +189,36 @@ export default function PembatalanCutiScreen() {
           value={alasan}
           onChangeText={setAlasan}
         />
-
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitText}>Kirim</Text>
-        </TouchableOpacity>
+        
       </View>
-    </ScrollView>
+       </ScrollView>
+
+       <View style={styles.buttonRow}>
+             
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  {
+                    backgroundColor: "#2196F3",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  },
+                  { backgroundColor: "#3CCA49" },
+                ]}
+             onPress={handleSubmit}
+              >
+                <Ionicons
+                  name="send"
+                  size={15}
+                  color="#fff"
+                  style={{ marginRight: 8 }}
+                />
+                <Text style={styles.submitText}>Submit</Text>
+              </TouchableOpacity>
+            </View>
+            </>
+   
   );
 }
 
@@ -261,6 +312,31 @@ const styles = StyleSheet.create({
   },
   submitText: {
     color: "white",
-    fontWeight: "bold",
+    fontFamily:"Poppins_700Bold"
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 1.5,
+    borderColor: "#21376A",
+    borderRadius: 4,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+  },
+   buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    padding: 15,
+    paddingBottom: 30,
+    borderTopWidth: 1,
+    borderColor: "#eee",
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 12,
+    marginHorizontal: 4,
+    borderRadius: 8,
+    alignItems: "center",
   },
 });

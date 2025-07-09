@@ -15,6 +15,10 @@ import IMPScreen from "./component/pages/IMP/karyawan/Index";
 import TambahIMPScreen from "./component/pages/IMP/karyawan/Tambah";
 import FilterIMPScreen from "./component/pages/IMP/karyawan/Filter";
 import DetailIMPScreen from "./component/pages/IMP/karyawan/Lihat";
+import ReimbursementScreen from "./component/pages/Reimbursement/Karyawan/Index";
+import TambahReimbursementScreen from "./component/pages/Reimbursement/Karyawan/Tambah";
+import PembatalanReimbursementScreen from "./component/pages/Reimbursement/Karyawan/Pembatalan";
+import DetailReimbursementScreen from "./component/pages/Reimbursement/Karyawan/Lihat";
 import * as SplashScreen from "expo-splash-screen";
 import {
   useFonts,
@@ -97,7 +101,66 @@ export default function App() {
               component={DetailCutiScreen}
               options={{ animation: "slide_from_right", headerShown: false }}
             />
-
+            <Stack.Screen
+              name="IDL"
+              component={IDLScreen}
+              options={{ animation: "slide_from_right", headerShown: false }}
+            />
+            <Stack.Screen
+              name="TambahIDL"
+              component={TambahIDLScreen}
+              options={{ animation: "slide_from_right", headerShown: false }}
+            />
+            <Stack.Screen
+              name="FilterIDL"
+              component={FilterIDLScreen}
+              options={{ animation: "slide_from_right", headerShown: false }}
+            />
+            <Stack.Screen
+              name="LihatIDL"
+              component={DetailIDLScreen}
+              options={{ animation: "slide_from_right", headerShown: false }}
+            />
+            <Stack.Screen
+              name="IMP"
+              component={IMPScreen}
+              options={{ animation: "slide_from_right", headerShown: false }}
+            />
+            <Stack.Screen
+              name="TambahIMP"
+              component={TambahIMPScreen}
+              options={{ animation: "slide_from_right", headerShown: false }}
+            />
+            <Stack.Screen
+              name="FilterIMP"
+              component={FilterIMPScreen}
+              options={{ animation: "slide_from_right", headerShown: false }}
+            />
+            <Stack.Screen
+              name="LihatIMP"
+              component={DetailIMPScreen}
+              options={{ animation: "slide_from_right", headerShown: false }}
+            />
+            <Stack.Screen
+              name="Reimbursement"
+              component={ReimbursementScreen}
+              options={{ animation: "slide_from_right", headerShown: false }}
+            />
+            <Stack.Screen
+              name="TambahReimbursement"
+              component={TambahReimbursementScreen}
+              options={{ animation: "slide_from_right", headerShown: false }}
+            />
+            <Stack.Screen
+              name="PembatalanReimbursement"
+              component={PembatalanReimbursementScreen}
+              options={{ animation: "slide_from_right", headerShown: false }}
+            />
+            <Stack.Screen
+              name="LihatReimbursement"
+              component={DetailReimbursementScreen}
+              options={{ animation: "slide_from_right", headerShown: false }}
+            />
             <Stack.Screen
               name="Profile"
               component={Profile}
@@ -109,15 +172,6 @@ export default function App() {
               component={ForgotPassword}
               options={{ animation: "slide_from_right", headerShown: false }}
             />
-
-            <Stack.Screen name="IDL" component={IDLScreen} options={{ headerShown: false }}/>
-            <Stack.Screen name="TambahIDL" component={TambahIDLScreen}  options={{ headerShown: false }}/>
-            <Stack.Screen name="FilterIDL" component={FilterIDLScreen}  options={{ headerShown: false }}/>
-            <Stack.Screen name="LihatIDL" component={DetailIDLScreen}  options={{ headerShown: false }}/>
-            <Stack.Screen name="IMP" component={IMPScreen}  options={{ headerShown: false }} />
-            <Stack.Screen name="TambahIMP" component={TambahIMPScreen}   options={{ headerShown: false }}/>
-            <Stack.Screen name="FilterIMP" component={FilterIMPScreen}  options={{ headerShown: false }}/>
-            <Stack.Screen name="LihatIMP" component={DetailIMPScreen}  options={{ headerShown: false }} />
           </Stack.Navigator>
         </NavigationContainer>
         <Toast />

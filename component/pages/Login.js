@@ -14,6 +14,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../backbone/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getServerIP } from "../backbone/ApiConfig";
 
 const Login = ({ navigation }) => {
   const { setUser } = useContext(AuthContext);
@@ -29,7 +30,6 @@ const Login = ({ navigation }) => {
       const saved = await AsyncStorage.getItem("lastLogin");
       if (saved) {
         const parsed = JSON.parse(saved);
-        console.log("dataa", parsed);
         setUsername(parsed.username);
         setPassword(parsed.password);
         setRemember(true);
@@ -40,45 +40,34 @@ const Login = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch("http://172.20.10.2:8080/login", {
+      const ip = await getServerIP();
+      const response = await fetch(`http://${ip}:8080/karyawan/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId: username,
+          npk: username,
           password: password,
         }),
       });
 
       if (remember) {
-        const savedData = {
-          username,
-          password,
-        };
-        await AsyncStorage.setItem("lastLogin", JSON.stringify(savedData));
-      }
-      if (!remember) {
+        await AsyncStorage.setItem(
+          "lastLogin",
+          JSON.stringify({ username, password })
+        );
+      } else {
         await AsyncStorage.removeItem("lastLogin");
       }
 
       const result = await response.json();
       if (result.result === 200) {
         setUser(result.data);
-
-        if (remember) {
-          await AsyncStorage.setItem(
-            "lastLogin",
-            JSON.stringify({ username, password })
-          );
-        } else {
-          await AsyncStorage.removeItem("lastLogin");
-        }
-
         Toast.show({
           type: "success",
           text1: "Login Berhasil",
-          text2: `Selamat datang, ${username}!`,
+          text2: `Selamat datang, ${result.data.namaKaryawan}!`,
         });
 
         setTimeout(() => {

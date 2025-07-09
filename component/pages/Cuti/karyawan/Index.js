@@ -12,66 +12,24 @@ import { ImageBackground } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import PanduanCuti from "../../../part/PanduanCuti";
 import FilterTahun from "../../../part/Filter";
-
-const dataCuti = [
-  {
-    id: "LVR202503013458",
-    jenis: "Cuti Besar",
-    status: "Terlaksana",
-    tanggal: "27 Feb 2025 s/d 28 Feb 2025",
-    statusColor: "#4CAF50",
-    labelColor: "#4CAF50",
-  },
-  {
-    id: "LVR202503013459",
-    jenis: "Cuti Pribadi",
-    status: "Belum Terlaksana",
-    tanggal: "27 Feb 2025 s/d 28 Feb 2025",
-    statusColor: "#FFEB3B",
-    labelColor: "#FFC107",
-  },
-  {
-    id: "LVR202503013460",
-    jenis: "Cuti Pribadi",
-    status: "Menunggu Persetujuan",
-    tanggal: "27 Feb 2025 s/d 28 Feb 2025",
-    statusColor: "#2196F3",
-    labelColor: "#2196F3",
-  },
-  {
-    id: "LVR202503013461",
-    jenis: "Cuti Khusus",
-    status: "Belum Terlaksana",
-    tanggal: "27 Feb 2025 s/d 28 Feb 2025",
-    statusColor: "#FFEB3B",
-    labelColor: "#FFC107",
-  },
-  {
-    id: "LVR202503013462",
-    jenis: "Cuti Khusus",
-    status: "Belum Terlaksana",
-    tanggal: "27 Feb 2025 s/d 28 Feb 2025",
-    statusColor: "#FFEB3B",
-    labelColor: "#FFC107",
-  },
-  {
-    id: "LVR202503013463",
-    jenis: "Cuti Khusus",
-    status: "Belum Terlaksana",
-    tanggal: "27 Feb 2025 s/d 28 Feb 2025",
-    statusColor: "#FFEB3B",
-    labelColor: "#FFC107",
-  },
-];
+import { getServerIP } from "../../../backbone/ApiConfig";
+import Header from "../../../backbone/Header";
 
 const CutiScreen = ({ route }) => {
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
   const [cutiList, setCutiList] = useState([]);
-  const userId = route?.params?.user?.userId || "";
+  const userId = route?.params?.user?.npk || "";
   const [selectedJenis, setSelectedJenis] = useState("Cuti Pribadi");
   const [selectedYear, setSelectedYear] = useState("2025");
   const [yearModalVisible, setYearModalVisible] = useState(false);
+  const [jatahCuti, setJatahCuti] = useState({
+    hakCuti: 0,
+    cutiDipakai: 0,
+    sisaCuti: 0,
+    onProgres: 0,
+    masaBerlaku: "",
+  });
 
   const formatTanggal = (tanggalString) => {
     const bulanIndo = [
@@ -127,27 +85,78 @@ const CutiScreen = ({ route }) => {
 
   const [selectedStatus, setSelectedStatus] = useState("Semua");
 
+  const fetchJatahCuti = async () => {
+    try {
+      const ip = await getServerIP();
+
+      const response = await fetch(
+        `http://${ip}:8080/jatahcuti/karyawan?npk=${userId}&tahun=${selectedYear}&tipe=${selectedJenis}`
+      );
+      console.log(
+        "ip",
+        `http://${ip}:8080/jatahcuti/karyawan?npk=${userId}&tahun=${selectedYear}&tipe=${selectedJenis}`
+      );
+      const data = await response.json();
+
+      const item = data[0] || {};
+      console.log("datanya", data);
+
+      const onProgres = cutiList.filter(
+        (item) => item.tipeCuti === "Menunggu Persetujuan"
+      ).length;
+
+      setJatahCuti({
+        hakCuti: item.hakCuti || 0,
+        cutiDipakai: item.cutiDipakai || 0,
+        sisaCuti: item.cutiSisa || 0,
+        onProgres,
+        masaBerlaku: item.masaBerlaku || 0,
+      });
+    } catch (err) {
+      console.error("Gagal mengambil jatah cuti", err);
+    }
+  };
+
   useEffect(() => {
     if (!userId) return;
 
-    const query = new URLSearchParams({
-      userId: userId,
-      ...(selectedJenis && { jenis: selectedJenis }),
-      ...(selectedStatus !== "Semua" && { status: selectedStatus }),
-    });
+    const fetchData = async () => {
+      try {
+        const ip = await getServerIP();
 
-    console.log("data query", query);
+        const query = new URLSearchParams({
+          npk: userId,
+          ...(selectedJenis && { jenis: selectedJenis }),
+          ...(selectedStatus !== "Semua" && { status: selectedStatus }),
+        });
 
-    fetch(`http://172.20.10.2:8080/cuti/user?${query.toString()}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setCutiList(Array.isArray(data) ? data : []);
-      })
-      .catch((err) => {
+        const response = await fetch(
+          `http://${ip}:8080/cuti/karyawan?${query.toString()}`
+        );
+        const data = await response.json();
+
+        const dataFilteredByYear = data.filter((cuti) => {
+          const tahunAwal = new Date(cuti.tanggalAwal).getFullYear();
+          return tahunAwal.toString() === selectedYear;
+        });
+
+        setCutiList(
+          Array.isArray(dataFilteredByYear) ? dataFilteredByYear : []
+        );
+      } catch (err) {
         console.error("Gagal mengambil data cuti", err);
         setCutiList([]);
-      });
-  }, [userId, selectedJenis, selectedStatus]);
+      }
+    };
+
+    fetchData();
+  }, [userId, selectedJenis, selectedStatus, selectedYear]);
+
+  useEffect(() => {
+    if (cutiList.length > 0 && selectedYear) {
+      fetchJatahCuti();
+    }
+  }, [cutiList, selectedYear]);
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
@@ -158,6 +167,8 @@ const CutiScreen = ({ route }) => {
       case "menunggu persetujuan":
       case "menunggu":
         return "#2196F3";
+      case "dibatalkan":
+        return "red";
       default:
         return "#9E9E9E";
     }
@@ -165,26 +176,9 @@ const CutiScreen = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      <ImageBackground
-        source={require("../../../../assets/bg_navbar.png")}
-        style={styles.header}
-        resizeMode="cover"
-      >
-        <Ionicons
-          name="arrow-back"
-          size={24}
-          color="#fff"
-          style={{ paddingLeft: 20 }}
-          onPress={() => {
-            navigation.goBack();
-          }}
-        />
+      <Header title="Menu Cuti" />
 
-        <Text style={styles.headerText}>Menu Cuti</Text>
-        <View style={{ width: 24 }} />
-      </ImageBackground>
-
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <View style={{ paddingHorizontal: 16, marginVertical: 10 }}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.tabBar}>
             {["Cuti Pribadi", "Cuti Besar", "Cuti Khusus"].map((jenis) => (
@@ -204,7 +198,9 @@ const CutiScreen = ({ route }) => {
             ))}
           </View>
         </ScrollView>
+      </View>
 
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.dateRangeBox}>
           <Text style={styles.dateRangeText}>
             {getTanggalRange(selectedYear)}
@@ -239,7 +235,6 @@ const CutiScreen = ({ route }) => {
           selectedYear={selectedYear}
           onSelectYear={(year) => {
             setSelectedYear(year);
-            // TODO: fetch data ulang jika dibutuhkan
           }}
         />
 
@@ -248,12 +243,11 @@ const CutiScreen = ({ route }) => {
             <Text style={styles.summaryTitle}>Jenis</Text>
             <Text style={styles.summaryTitle}>Jumlah</Text>
           </View>
-
           {[
-            { label: "Hak Cuti", jumlah: 50 },
-            { label: "Pemakaian Cuti", jumlah: 10 },
-            { label: "Cuti On Progres", jumlah: 5 },
-            { label: "Sisa Cuti", jumlah: 35 },
+            { label: "Hak Cuti", jumlah: jatahCuti.hakCuti },
+            { label: "Pemakaian Cuti", jumlah: jatahCuti.cutiDipakai },
+            { label: "Cuti On Progres", jumlah: jatahCuti.onProgres },
+            { label: "Sisa Cuti", jumlah: jatahCuti.sisaCuti },
           ].map((item, idx, arr) => (
             <View
               style={[
@@ -281,12 +275,11 @@ const CutiScreen = ({ route }) => {
           <Text style={{ marginLeft: 6 }}>
             Masa berlaku cuti:{" "}
             <Text style={{ color: "red", fontWeight: "bold" }}>
-              30 Juni 2025
+              {formatTanggal(jatahCuti.masaBerlaku)}
             </Text>
           </Text>
         </View>
 
-        {/* Filter Daftar Cuti */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.filterBar}>
             {[
@@ -294,6 +287,7 @@ const CutiScreen = ({ route }) => {
               "Terlaksana",
               "Belum Terlaksana",
               "Menunggu Persetujuan",
+              "Dibatalkan",
             ].map((status) => (
               <TouchableOpacity
                 key={status}
@@ -338,26 +332,27 @@ const CutiScreen = ({ route }) => {
                 >
                   <Text style={styles.statusText}>{item.status}</Text>
                 </View>
-                {item.status !== "Terlaksana" && (
-                  <TouchableOpacity
-                    onPress={() =>
-                      navigation.navigate("PembatalanCuti", {
-                        cutiId: item.cutiId,
-                      })
-                    }
-                    style={{
-                      backgroundColor: "red",
-                      borderRadius: 20,
-                      padding: 6,
-                      marginLeft: 4,
-                    }}
-                  >
-                    <MaterialIcons name="cancel" size={16} color="#fff" />
-                  </TouchableOpacity>
-                )}
+                {item.status !== "Terlaksana" &&
+                  item.status !== "Dibatalkan" && (
+                    <TouchableOpacity
+                      onPress={() =>
+                        navigation.navigate("PembatalanCuti", {
+                          cutiId: item.cutiId,
+                        })
+                      }
+                      style={{
+                        backgroundColor: "red",
+                        borderRadius: 20,
+                        padding: 6,
+                        marginLeft: 4,
+                      }}
+                    >
+                      <MaterialIcons name="cancel" size={16} color="#fff" />
+                    </TouchableOpacity>
+                  )}
               </View>
             </View>
-            <Text style={styles.cardSub}>{item.jenisCuti}</Text>
+            <Text style={styles.cardSub}>{item.subTipeCuti}</Text>
             <View style={styles.cardRow}>
               <MaterialIcons name="access-time" size={16} color="#333" />
               <Text style={styles.cardDate}>
@@ -394,29 +389,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
-  header: {
-    backgroundColor: "#1E2D56",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingTop: 30,
-    height: 100,
-    justifyContent: "space-between",
-  },
-  headerText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-    fontFamily: "Poppins_700bold",
-  },
-
-  scrollContent: { padding: 16 },
-  tabBar: { flexDirection: "row", marginBottom: 12 },
+  scrollContent: { paddingLeft: 10, paddingRight: 10 },
+  tabBar: { flexDirection: "row" },
   tabItem: {
     color: "#aaa",
     marginRight: 16,
     fontFamily: "Poppins_600SemiBold",
     paddingHorizontal: 8,
-    paddingVertical: 8,
+    paddingVertical: 10,
   },
   tabItemActive: {
     color: "#1E2D56",

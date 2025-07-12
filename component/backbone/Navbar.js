@@ -78,22 +78,6 @@ const Navbar = () => {
           Profil
         </Text>
       </TouchableOpacity>
-
-      {/* Lainnya */}
-      <TouchableOpacity
-        style={styles.navItem}
-        onPress={() => navigation.navigate("Lainnya")} // sesuaikan screen kalau ada
-      >
-        <MaterialIcons
-          name="menu"
-          size={24}
-          color={getColor("Lainnya")}
-          style={styles.icon}
-        />
-        <Text style={[styles.navText, { color: getColor("Lainnya") }]}>
-          Lainnya
-        </Text>
-      </TouchableOpacity>
     </View>
   );
 };

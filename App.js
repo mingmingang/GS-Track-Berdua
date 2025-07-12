@@ -15,6 +15,7 @@ import IMPScreen from "./component/pages/IMP/karyawan/Index";
 import TambahIMPScreen from "./component/pages/IMP/karyawan/Tambah";
 import FilterIMPScreen from "./component/pages/IMP/karyawan/Filter";
 import DetailIMPScreen from "./component/pages/IMP/karyawan/Lihat";
+import KehadiranScreen from "./component/pages/Kehadiran/Index";
 import * as SplashScreen from "expo-splash-screen";
 import {
   useFonts,
@@ -109,7 +110,7 @@ export default function App() {
               component={ForgotPassword}
               options={{ animation: "slide_from_right", headerShown: false }}
             />
-
+            <Stack.Screen name="Kehadiran" component={KehadiranScreen} options={{ headerShown: false }} />
             <Stack.Screen name="IDL" component={IDLScreen} options={{ headerShown: false }}/>
             <Stack.Screen name="TambahIDL" component={TambahIDLScreen}  options={{ headerShown: false }}/>
             <Stack.Screen name="FilterIDL" component={FilterIDLScreen}  options={{ headerShown: false }}/>

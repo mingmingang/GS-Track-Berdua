@@ -14,6 +14,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../backbone/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import BASE_URL from "../backbone/Constant";
 
 const Login = ({ navigation }) => {
   const { setUser } = useContext(AuthContext);
@@ -40,13 +41,13 @@ const Login = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch("http://172.20.10.2:8080/login", {
+      const response = await fetch(BASE_URL + "karyawan/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId: username,
+          npk: username,
           password: password,
         }),
       });
@@ -95,7 +96,7 @@ const Login = ({ navigation }) => {
       Toast.show({
         type: "error",
         text1: "Kesalahan Server",
-        text2: "Tidak dapat terhubung ke server",
+        text2: "Tidak dapat terhubung ke server" + error,
       });
       console.error(error);
     }

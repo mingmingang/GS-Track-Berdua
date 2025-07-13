@@ -240,17 +240,6 @@ export default function KalenderScreen() {
                     const jam = now.getHours();
                     const menit = now.getMinutes();
 
-                    // Validasi jam boleh check-in hanya antara 06:00 - 09:00
-                    if (jam < 6) {
-                        Alert.alert("Terlalu pagi!", "Check-in hanya bisa dilakukan mulai jam 06:00 pagi.");
-                        return;
-                    }
-
-                    if (jam > 9 || (jam === 9 && menit > 0)) {
-                        Alert.alert("Terlambat!", "Check-in hanya bisa dilakukan sebelum jam 09:00.");
-                        return;
-                    }
-
                     // Cek apakah sudah pernah check-in hari ini
                     const response = await fetch(`${BASE_URL}kehadiran/currenthadir`, {
                         method: "POST",
@@ -267,6 +256,17 @@ export default function KalenderScreen() {
 
                     if (resJson.data !== null) {
                         Alert.alert("Info", "Anda sudah melakukan check-in hari ini.");
+                        return;
+                    }
+
+                    // Validasi jam boleh check-in hanya antara 06:00 - 09:00
+                    if (jam < 6) {
+                        Alert.alert("Terlalu pagi!", "Check-in hanya bisa dilakukan mulai jam 06:00 pagi.");
+                        return;
+                    }
+
+                    if (jam > 9 || (jam === 9 && menit > 0)) {
+                        Alert.alert("Terlambat!", "Check-in hanya bisa dilakukan sebelum jam 09:00.");
                         return;
                     }
 

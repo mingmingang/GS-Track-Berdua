@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -17,6 +17,10 @@ import { useNavigation } from "@react-navigation/native";
 import { AuthContext } from "../backbone/AuthContext";
 import Navbar from "../backbone/Navbar";
 import i18n from "../backbone/i18n";
+import BASE_URL from "../backbone/Constant";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from 'expo-location';
+
 
 const screenWidth = Dimensions.get("window").width;
 const itemWidth = (screenWidth - 40) / 4;
@@ -37,6 +41,122 @@ const menuItems = [
 export default function HomeScreen() {
   const navigation = useNavigation();
   const { user } = useContext(AuthContext);
+  const [jamMasuk, setJamMasuk] = useState("-");
+  const [jamKeluar, setJamKeluar] = useState("-");
+  const [serverConnected, setServerConnected] = useState(true);
+  const [gpsConnected, setGpsConnected] = useState(true);
+
+
+  const getData = async (key) => {
+    try {
+      const jsonValue = await AsyncStorage.getItem(key);
+      if (jsonValue !== null) {
+        return JSON.parse(jsonValue); // Kalo disimpan dalam bentuk JSON
+      }
+      return null;
+    } catch (e) {
+      console.error("❌ Gagal ambil data:", e);
+      return null;
+    }
+  };
+
+  const loadCurrentHadir = async () => {
+    try {
+      const current = await getData("lastLogin");
+      const response = await fetch(BASE_URL+"kehadiran/currenthadir", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          idKaryawan: current.username,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.result === 200 && result.data) {
+        const masuk = result.data.masukAbsen;
+        const keluar = result.data.keluarAbsen;
+
+        // Format jam ke HH:mm atau "-" kalo null
+        const formatJam = (datetime) => {
+          if (!datetime) return "-";
+          const jam = new Date(datetime).getHours().toString().padStart(2, "0");
+          const menit = new Date(datetime).getMinutes().toString().padStart(2, "0");
+          return `${jam}:${menit}`;
+        };
+
+        setJamMasuk(formatJam(masuk));
+        setJamKeluar(formatJam(keluar));
+      } else {
+        setJamMasuk("-");
+        setJamKeluar("-");
+      }
+    } catch (error) {
+      console.error("Gagal ambil data kehadiran:", error);
+      setJamMasuk("-");
+      setJamKeluar("-");
+    }
+  };
+
+  let locationSubscription = null;
+
+  useEffect(() => {
+    loadCurrentHadir();
+
+    // ⏱️ Cek koneksi server tiap 5 detik
+    const interval = setInterval(() => {
+      fetch(BASE_URL + "service/shoot")
+        .then((res) => {
+          // console.log(res.ok);
+          setServerConnected(res.ok);
+        })
+        .catch(() => setServerConnected(false));
+    }, 5000);
+
+    // 🛰️ Pantau GPS real-time pakai expo-location
+    const startWatchingLocation = async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          console.log("❌ Izin lokasi ditolak");
+          setGpsConnected(false);
+          return;
+        }
+
+        locationSubscription = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.High,
+            timeInterval: 5000,        // update tiap 5 detik
+            distanceInterval: 10,      // atau pindah 10 meter
+          },
+          (location) => {
+            console.log("📡 Lokasi Update:", location);
+            setGpsConnected(true);
+          },
+          (error) => {
+            console.log("❌ Gagal update lokasi:", error?.message || error);
+            setGpsConnected(false);
+          }
+        );
+      } catch (err) {
+        console.error("❌ Error setup GPS:", err?.message || err);
+        setGpsConnected(false);
+      }
+    };
+
+
+    startWatchingLocation();
+
+    // 🧹 Cleanup
+    return () => {
+      clearInterval(interval);
+      if (locationSubscription) {
+        locationSubscription.remove();
+      }
+    };
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -63,11 +183,27 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.statusRow}>
-            <View style={styles.statusTag}>
-              <Text style={styles.statusText}>{i18n.t("signal_good")}</Text>
+            <View style={[
+              styles.statusTag,
+              { backgroundColor: serverConnected ? "#E3F6DC" : "#FFEBEE" }, 
+            ]}>
+              <Text  style={[
+                  styles.statusText,
+                  { color: serverConnected ? "#388E3C" : "#D32F2F" },
+                ]}>
+                {serverConnected ? "📶 Server Terhubung" : "❌ Server Terputus"}
+              </Text>
             </View>
-            <View style={styles.statusTag}>
-              <Text style={styles.statusText}>{i18n.t("gps_connected")}</Text>
+            <View  style={[
+                styles.statusTag,
+                { backgroundColor: gpsConnected ? "#E3F6DC" : "#FFEBEE" },
+              ]}>
+              <Text style={[
+                  styles.statusText,
+                  { color: gpsConnected ? "#388E3C" : "#D32F2F" }, 
+                ]}>
+                {gpsConnected ? "🛰️ GPS Terhubung" : "📴 GPS Tidak Aktif"}
+              </Text>
             </View>
           </View>
         </View>
@@ -91,14 +227,14 @@ export default function HomeScreen() {
 
           <View style={styles.timeRow}>
             <View style={styles.timeItem}>
-              <Text style={styles.timeText}>07:11</Text>
-              <Text style={styles.timeLabel}>{i18n.t("entry")}</Text>
+              <Text style={styles.timeText}>{jamMasuk}</Text>
+                            <Text style={styles.timeLabel}>{i18n.t("entry")}</Text>
             </View>
 
             <Text style={styles.arrow}>→</Text>
 
             <View style={styles.timeItem}>
-              <Text style={styles.timeText}>16:01</Text>
+              <Text style={styles.timeText}>{jamKeluar}</Text>
               <Text style={styles.timeLabel}>{i18n.t("exit")}</Text>
             </View>
           </View>
@@ -123,6 +259,12 @@ export default function HomeScreen() {
                     : "ReimbursementKaryawan"
                 );
                 return;
+              }
+              if(item.title === "Kehadiran"){
+                navigation.navigate("Kehadiran", {user: user})
+              }
+              if (item.title === "Cuti") {
+              navigation.navigate("Cuti", { user: user });
               }
               if (item.titleKey === "menu_leave") {
                 navigation.navigate(

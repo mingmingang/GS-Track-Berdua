@@ -15,6 +15,7 @@ import { AuthContext } from "../backbone/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getServerIP } from "../backbone/ApiConfig";
 import i18n from "../backbone/i18n"; // ✅ import i18n
+import BASE_URL from "../backbone/Constant";
 
 const Login = ({ navigation }) => {
   const { login } = useContext(AuthContext);
@@ -38,8 +39,7 @@ const Login = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      const ip = await getServerIP();
-      const response = await fetch(`http://${ip}:8080/karyawan/login`, {
+      const response = await fetch(BASE_URL + "karyawan/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -168,7 +168,6 @@ const Login = ({ navigation }) => {
 
 export default Login;
 
-// Styles tidak perlu diubah
 const styles = StyleSheet.create({
   container: {
     flex: 1,

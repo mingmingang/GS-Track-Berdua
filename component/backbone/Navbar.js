@@ -4,6 +4,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import i18n from "../backbone/i18n"; // ⬅️ Tambahkan ini
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Navbar = () => {
   const navigation = useNavigation();
@@ -35,15 +36,15 @@ const Navbar = () => {
       {/* Kalender */}
       <TouchableOpacity
         style={styles.navItem}
-        onPress={() => navigation.navigate("Cuti")}
+        onPress={() => navigation.navigate("Kalender")} // ganti kalau nama screen kalender berbeda
       >
         <MaterialIcons
           name="calendar-today"
           size={24}
-          color={getColor("Cuti")}
+          color={getColor("Kalender")}
           style={styles.icon}
         />
-        <Text style={[styles.navText, { color: getColor("Cuti") }]}>
+        <Text style={[styles.navText, { color: getColor("Kalender") }]}>
           {i18n.t("navbar_calendar")}
         </Text>
       </TouchableOpacity>

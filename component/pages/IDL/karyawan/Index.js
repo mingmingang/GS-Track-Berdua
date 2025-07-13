@@ -1,16 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  ImageBackground,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { ImageBackground } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import PanduanIDL from "../../../part/PanduanIDL";
 import { getServerIP } from "../../../backbone/ApiConfig";
+import { AuthContext } from "../../../backbone/AuthContext";
 
 const formatTanggal = (tanggalString) => {
   const bulanIndo = [
@@ -34,9 +35,93 @@ const formatTanggal = (tanggalString) => {
   return `${hari} ${bulan} ${tahun}`;
 };
 
+const getColorByStatus = (status) => {
+  switch (status?.toLowerCase()) {
+    case "menunggu persetujuan":
+      return "#648DF0";
+    case "belum diverifikasi":
+      return "#FFC107";
+    case "selesai":
+      return "#4CAF50";
+    case "ditolak":
+      return "#f44336";
+    default:
+      return "#9E9E9E";
+  }
+};
+
 const IDLScreen = () => {
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
+  const [dataIDL, setDataIDL] = useState([]);
+  const { user } = useContext(AuthContext);
+  const userId = user?.npk || "";
+  const nama = user?.namaKaryawan || "";
+
+  useEffect(() => {
+    const fetchIDL = async () => {
+      try {
+        const ip = await getServerIP();
+        const url = `http://${ip}:8080/IDL/karyawan?idlNpk=${userId}`;
+        console.log("🔗 Request URL:", url);
+
+        const response = await fetch(url);
+        const json = await response.json();
+
+        console.log("📥 Raw Response:", json);
+
+        const statusPriority = {
+          "menunggu persetujuan": 1,
+          "belum diverifikasi": 2,
+          selesai: 3,
+          ditolak: 4,
+        };
+
+        const mappedData = json
+          .map((item) => ({
+            id: item.idlNoRequest,
+            npk: userId,
+            nama: nama,
+            alasan: item.idlJenisKegiatan,
+            tanggal: formatTanggal(item.idlTanggalBerangkat),
+            status: item.idlStatus,
+            labelColor: getColorByStatus(item.idlStatus),
+
+            // Tambahan data untuk detail:
+            tanggalPengajuan: item.idlCreatedDate,
+            tanggalBerangkat: item.idlTanggalBerangkat,
+            jamBerangkat: item.idlWaktuBerangkat,
+            tanggalKembali: item.idlTanggalKembali,
+            jamKembali: item.idlWaktuKembali,
+            lokasi1: item.idlLokasiPertama,
+            lokasi2: item.idlLokasiKedua,
+            lokasi3: item.idlLokasiKetiga,
+            keterangan: item.idlKeterangan,
+            berkasLampiran: item.idlBerkasLampiran,
+          }))
+          .sort((a, b) => {
+            const statusA = a.status?.toLowerCase() || "";
+            const statusB = b.status?.toLowerCase() || "";
+            return (
+              (statusPriority[statusA] || 999) -
+              (statusPriority[statusB] || 999)
+            );
+          });
+
+        setDataIDL(mappedData);
+
+        console.log("✅ Mapped Data:", mappedData);
+      } catch (error) {
+        console.error("❌ Gagal fetch data IDL:", error);
+      }
+    };
+
+    if (userId) {
+      fetchIDL();
+    } else {
+      console.log("⚠️ userId kosong, fetchIDL tidak dipanggil");
+    }
+  }, [userId]);
 
   return (
     <View style={styles.container}>
@@ -49,7 +134,7 @@ const IDLScreen = () => {
           name="arrow-back"
           size={24}
           color="#fff"
-          style={{ paddingLeft: "20" }}
+          style={{ paddingLeft: 20 }}
           onPress={() => navigation.goBack()}
         />
         <Text style={styles.headerText}>Menu Izin Dinas Luar</Text>
@@ -68,6 +153,7 @@ const IDLScreen = () => {
               visible={modalVisible}
               onClose={() => setModalVisible(false)}
             />
+
             <View
               style={{
                 width: 1,
@@ -83,45 +169,52 @@ const IDLScreen = () => {
         </View>
 
         {/* Daftar IDL */}
-        {dataIDL.map((item) => (
-          <View key={item.id} style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>NPK: {item.id}</Text>
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <View
-                  style={[
-                    styles.statusBadge,
-                    { backgroundColor: item.labelColor },
-                  ]}
-                >
-                  <Text style={styles.statusText}>{item.status}</Text>
+        {dataIDL.length === 0 ? (
+          <Text style={{ textAlign: "center", marginTop: 20, color: "#999" }}>
+            Belum ada data IDL.
+          </Text>
+        ) : (
+          dataIDL.map((item) => (
+            <View key={item.id} style={styles.card}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>NPK: {item.npk}</Text>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      { backgroundColor: item.labelColor },
+                    ]}
+                  >
+                    <Text style={styles.statusText}>{item.status}</Text>
+                  </View>
                 </View>
               </View>
-            </View>
 
-            <Text style={styles.cardNama}>{item.nama}</Text>
-            <Text style={styles.cardSub}>Alasan: {item.alasan}</Text>
+              <Text style={styles.cardNama}>{item.nama}</Text>
+              <Text style={styles.cardSub}>Alasan: {item.alasan}</Text>
 
-            {/* Tanggal dan Tombol Lihat dalam satu baris */}
-            <View
-              style={[
-                styles.cardRow,
-                { justifyContent: "space-between", alignItems: "center" },
-              ]}
-            >
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <MaterialIcons name="access-time" size={16} color="#333" />
-                <Text style={styles.cardDate}>{item.tanggal}</Text>
-              </View>
-              <TouchableOpacity
-                style={styles.viewButton}
-                onPress={() => navigation.navigate("LihatIDL")}
+              <View
+                style={[
+                  styles.cardRow,
+                  { justifyContent: "space-between", alignItems: "center" },
+                ]}
               >
-                <Text style={styles.viewText}>Lihat →</Text>
-              </TouchableOpacity>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <MaterialIcons name="access-time" size={16} color="#333" />
+                  <Text style={styles.cardDate}>{item.tanggal}</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.viewButton}
+                  onPress={() =>
+                    navigation.navigate("LihatIDL", { idlData: item })
+                  }
+                >
+                  <Text style={styles.viewText}>Lihat →</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        ))}
+          ))
+        )}
       </ScrollView>
 
       <TouchableOpacity
@@ -154,9 +247,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: "Poppins_600SemiBold",
   },
-
   scrollContent: { padding: 16 },
-
   dateRangeBox: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -171,7 +262,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   iconsRight: { flexDirection: "row", alignItems: "center" },
-
   card: {
     backgroundColor: "#fff",
     elevation: 8,
@@ -183,7 +273,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     marginTop: 12,
   },
-
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -219,19 +308,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "Poppins_700Bold",
   },
-  statusX: {
-    color: "#fff",
-    fontSize: 14,
-    backgroundColor: "red",
-    paddingHorizontal: 5,
-    paddingVertical: 4,
-    borderRadius: 20,
-    fontWeight: "bold",
-  },
-
   viewButton: { alignSelf: "flex-end", marginTop: 8 },
   viewText: { color: "#1E2D56", fontWeight: "bold" },
-
   fab: {
     position: "absolute",
     bottom: 24,

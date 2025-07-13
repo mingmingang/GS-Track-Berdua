@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import i18n from "../backbone/i18n"; // ⬅️ Tambahkan ini
 
 const Navbar = () => {
   const navigation = useNavigation();
@@ -27,14 +28,14 @@ const Navbar = () => {
           style={styles.icon}
         />
         <Text style={[styles.navText, { color: getColor("Home") }]}>
-          Beranda
+          {i18n.t("navbar_home")}
         </Text>
       </TouchableOpacity>
 
       {/* Kalender */}
       <TouchableOpacity
         style={styles.navItem}
-        onPress={() => navigation.navigate("Cuti")} // ganti kalau nama screen kalender berbeda
+        onPress={() => navigation.navigate("Cuti")}
       >
         <MaterialIcons
           name="calendar-today"
@@ -43,14 +44,14 @@ const Navbar = () => {
           style={styles.icon}
         />
         <Text style={[styles.navText, { color: getColor("Cuti") }]}>
-          Kalender
+          {i18n.t("navbar_calendar")}
         </Text>
       </TouchableOpacity>
 
       {/* Dokumen */}
       <TouchableOpacity
         style={styles.navItem}
-        onPress={() => navigation.navigate("Dokumen")} // pastikan ada screen ini
+        onPress={() => navigation.navigate("Dokumen")}
       >
         <MaterialIcons
           name="folder"
@@ -59,7 +60,7 @@ const Navbar = () => {
           style={styles.icon}
         />
         <Text style={[styles.navText, { color: getColor("Dokumen") }]}>
-          Dokumen
+          {i18n.t("navbar_document")}
         </Text>
       </TouchableOpacity>
 
@@ -75,23 +76,7 @@ const Navbar = () => {
           style={styles.icon}
         />
         <Text style={[styles.navText, { color: getColor("Profile") }]}>
-          Profil
-        </Text>
-      </TouchableOpacity>
-
-      {/* Lainnya */}
-      <TouchableOpacity
-        style={styles.navItem}
-        onPress={() => navigation.navigate("Lainnya")} // sesuaikan screen kalau ada
-      >
-        <MaterialIcons
-          name="menu"
-          size={24}
-          color={getColor("Lainnya")}
-          style={styles.icon}
-        />
-        <Text style={[styles.navText, { color: getColor("Lainnya") }]}>
-          Lainnya
+          {i18n.t("navbar_profile")}
         </Text>
       </TouchableOpacity>
     </View>

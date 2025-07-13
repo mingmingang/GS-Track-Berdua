@@ -1,127 +1,229 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, ImageBackground, TouchableOpacity } from 'react-native';
-import { Ionicons } from "@expo/vector-icons";
+import React, { useState } from 'react';
+// --- TAMBAHAN: Import Modal dari react-native untuk popup kustom ---
+import { 
+    Modal as CustomModal, // Ganti nama agar tidak konflik dengan react-native-modal
+    View, 
+    Text, 
+    StyleSheet, 
+    ScrollView, 
+    ImageBackground, 
+    TouchableOpacity, 
+    Alert, 
+    Image,
+    ActivityIndicator
+} from 'react-native';
+import Modal from 'react-native-modal'; // Ini untuk modal gambar
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { getServerIP } from "../../../backbone/ApiConfig";
+import * as WebBrowser from 'expo-web-browser';
 
-// --- DATA DUMMY (BAGIAN INI DIMODIFIKASI UNTUK MENDUKUNG RENTANG TANGGAL) ---
-const fullReimbursementDetails = {
-    '#217727': {
-        status: 'Fully Approved', type: 'RAWAT_JALAN',
-        details: { noBukti: '217727', npkKaryawan: '230093', namaKaryawan: 'Maudy Ayunda', namaPasien: 'Elshanum Widya Safira', hubungan: 'Anak', tipeRS: 'Non Rayon', rumahSakit: 'Klinik Kusuma Medika', dokter: 'Dr. Kusuma', tanggalPengajuan: 'Kamis, 09 Jan 2025', tanggalRawat: 'Kamis, 09 Jan 2025', reimbursementCost: 'Rp. 1.208.570', jenisPembayaran: 'Transfer' },
-        diagnosis: 'Pemeriksaan demam & batuk'
-    },
-    '#223050': {
-        status: 'Waiting for Verification', type: 'MATERNITY',
-        // --- DIUBAH: Menjadi rentang tanggal ---
-        details: { noBukti: '223050', npkKaryawan: '230093', namaKaryawan: 'Maudy Ayunda', namaPasien: 'Maudy Ayunda', hubungan: 'Istri', tipeRS: 'Rayon', rumahSakit: 'RSIA Hermina', dokter: 'Dr. Richard', tanggalPengajuan: 'Kamis, 13 Feb 2025', tanggalMulaiRawat: 'Senin, 10 Feb 2025', tanggalSelesaiRawat: 'Rabu, 12 Feb 2025', reimbursementCost: 'Rp. 16.070.090', jenisPembayaran: 'Transfer' },
-        diagnosis: 'Pemeriksaan USG Kehamilan'
-    },
-    '#204511': {
-        status: 'Fully Approved', type: 'RAWAT_JALAN',
-        details: { noBukti: '204511', npkKaryawan: '230093', namaKaryawan: 'Maudy Ayunda', namaPasien: 'Pengguna', hubungan: 'Karyawan', tipeRS: 'Non Rayon', rumahSakit: 'Klinik Sehat Bugar', dokter: 'Dr. Budi', tanggalPengajuan: 'Selasa, 15 Okt 2024', tanggalRawat: 'Selasa, 15 Okt 2024', reimbursementCost: 'Rp. 550.000', jenisPembayaran: 'Transfer' },
-        diagnosis: 'Influenza'
-    },
-    '#209987': {
-        status: 'Waiting Approval', type: 'RAWAT_INAP',
-        // --- DIUBAH: Menjadi rentang tanggal ---
-        details: { noBukti: '209987', npkKaryawan: '230093', namaKaryawan: 'Maudy Ayunda', namaPasien: 'Elshanum Widya Safira', hubungan: 'Anak', tipeRS: 'Rayon', rumahSakit: 'RSUD Karawang', dokter: 'Dr. Aksara Mahesa', tanggalPengajuan: 'Jumat, 27 Des 2024', tanggalMulaiRawat: 'Jumat, 20 Des 2024', tanggalSelesaiRawat: 'Kamis, 26 Des 2024', reimbursementCost: 'Rp. 2.500.000', jenisPembayaran: 'Transfer' },
-        diagnosis: 'Demam Berdarah (DBD)'
-    },
-    '#205123': {
-        status: 'Canceled', type: 'RAWAT_JALAN',
-        details: { noBukti: '205123', npkKaryawan: '230093', namaKaryawan: 'Maudy Ayunda', namaPasien: 'Jesse Jisseok Choi', hubungan: 'Suami', tipeRS: 'Rayon', rumahSakit: 'Apotek K-24', dokter: '-', tanggalPengajuan: 'Jumat, 22 Nov 2024', tanggalRawat: 'Jumat, 22 Nov 2024', reimbursementCost: 'Rp. 400.000', jenisPembayaran: 'Transfer' },
-        diagnosis: 'Demam Tifoid (Tipes)'
-    },
-    '#198345': {
-        status: 'Fully Approved', type: 'MATERNITY',
-        // --- DIUBAH: Menjadi rentang tanggal ---
-        details: { noBukti: '198345', npkKaryawan: '230093', namaKaryawan: 'Maudy Ayunda', namaPasien: 'Maudy Ayunda', hubungan: 'Istri', tipeRS: 'Rayon', rumahSakit: 'RSIA Tambun', dokter: 'Dr. Sarah', tanggalPengajuan: 'Selasa, 07 Mar 2023', tanggalMulaiRawat: 'Rabu, 01 Mar 2023', tanggalSelesaiRawat: 'Minggu, 05 Mar 2023', reimbursementCost: 'Rp. 12.000.000', jenisPembayaran: 'Transfer' },
-        diagnosis: 'Biaya Persalinan'
-    },
-    '#188888': {
-        status: 'Fully Approved', type: 'RAWAT_JALAN',
-        details: { noBukti: '188888', npkKaryawan: '230093', namaKaryawan: 'Maudy Ayunda', namaPasien: 'Jesse Jisseok Choi', hubungan: 'Suami', tipeRS: 'Non Rayon', rumahSakit: 'Klinik Medika Utama', dokter: 'Dr. Santoso', tanggalPengajuan: 'Senin, 05 Sep 2022', tanggalRawat: 'Senin, 05 Sep 2022', reimbursementCost: 'Rp. 350.000', jenisPembayaran: 'Transfer' },
-        diagnosis: 'Konsultasi Umum'
+const DetailRow = ({ label, value }) => {
+    if (!value) return null;
+    return (
+        <View style={styles.detailRow}>
+            <Text style={styles.label}>{label}</Text>
+            <Text style={styles.value}>{value}</Text>
+        </View>
+    );
+}
+
+const FileLink = ({ label, noBukti, onFilePress, fileType, itemData }) => {
+  const handleOpenFile = async () => {
+    if (!noBukti) {
+      Alert.alert("Error", "Nomor bukti tidak ditemukan.");
+      return;
     }
+    const cleanedNoBukti = noBukti.startsWith('#') ? noBukti.substring(1) : noBukti;
+
+    try {
+      const ip = await getServerIP();
+      const filename = `${itemData.type || 'claim'}_${itemData.kryNpk || 'npk'}_${cleanedNoBukti}`.replace(/\s+/g, '_');
+      const url = `http://${ip}:8080/reimbursement/file/${cleanedNoBukti}/${fileType}`;
+      
+      console.log("Generated URL:", url);
+      console.log("Desired Filename (for backend):", filename);
+      
+      onFilePress(url); 
+
+    } catch (error) {
+      console.error("Gagal membuat URL file:", error);
+      Alert.alert("Gagal", "Tidak dapat memproses link file.");
+    }
+  };
+
+  return (
+    <View style={styles.detailRow}>
+      <Text style={styles.label}>{label}</Text>
+      <TouchableOpacity onPress={handleOpenFile}>
+        <Text style={styles.fileLinkText}>Lihat File</Text>
+      </TouchableOpacity>
+    </View>
+  );
 };
 
-const DetailRow = ({ label, value }) => (
-    <View style={styles.detailRow}>
-        <Text style={styles.label}>{label}</Text>
-        <Text style={styles.value}>{value}</Text>
-    </View>
-);
-
-const FileLink = ({ label }) => (
-    <View style={styles.detailRow}>
-        <Text style={styles.label}>{label}</Text>
-        <TouchableOpacity>
-            <Text style={styles.fileLinkText}>Lihat File</Text>
-        </TouchableOpacity>
-    </View>
-);
 
 export default function DetailReimbursementScreen() {
     const navigation = useNavigation();
     const route = useRoute();
     const { itemData } = route.params || {};
 
-    const dataToShow = fullReimbursementDetails[itemData?.noBukti] || null;
+    const [isModalVisible, setModalVisible] = useState(false);
+    const [currentFileUrl, setCurrentFileUrl] = useState(null);
+    // --- TAMBAHAN: State untuk visibility popup konfirmasi browser ---
+    const [isBrowserConfirmVisible, setBrowserConfirmVisible] = useState(false);
 
-    if (!dataToShow) {
-        return (
-             <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-                <Text>Data tidak ditemukan.</Text>
-                 <TouchableOpacity onPress={() => navigation.goBack()} style={{marginTop: 20}}>
-                     <Text style={{color: 'blue'}}>Kembali</Text>
-                 </TouchableOpacity>
-             </View>
-        )
+    if (!itemData) {
+      return (
+          <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>Data tidak ditemukan.</Text>
+          </View>
+      );
     }
-
-    // --- FUNGSI INI TELAH DIPERBAIKI ---
-    const getStatusStyle = (status) => {
-        switch (status) {
-            case 'Waiting Approval':
-                return { text: 'Menunggu Persetujuan', backgroundColor: '#0288D1' }; // Biru
-            case 'Waiting for Verification':
-                return { text: 'Belum Diverifikasi', backgroundColor: '#FFA000' }; // Kuning
-            case 'Fully Approved':
-                return { text: 'Disetujui', backgroundColor: '#4CAF50' }; // Hijau
-            case 'Canceled':
-                return { text: 'Dibatalkan', backgroundColor: '#EF4444' }; // Merah
-            default:
-                return { text: status, backgroundColor: '#6B7280' };
+    
+    // --- MODIFIKASI: Logika untuk membuka file, sekarang memicu modal kustom ---
+    const handleFilePress = (url) => {
+        setCurrentFileUrl(url); 
+        const isImage = /\.(jpg|jpeg|png)$/i.test(url);
+        
+        if (isImage) {
+            setModalVisible(true);
+        } else {
+            // Tampilkan popup kustom, bukan Alert.alert()
+            setBrowserConfirmVisible(true);
         }
-    };
-    // --- AKHIR PERBAIKAN ---
-
-    const statusStyle = getStatusStyle(dataToShow.status);
-
-    const renderFileLinks = (type) => {
-        let files = [];
-        switch (type) {
-            case 'RAWAT_JALAN': files = ['Kwitansi', 'Rincian Obat']; break;
-            case 'RAWAT_INAP':
-            case 'MATERNITY': files = ['Kwitansi', 'Rincian Obat', 'Hasil Lab', 'Resume Medis']; break;
-            case 'KB': files = ['Kwitansi KB']; break;
-            default: return null;
-        }
-        return files.map(file => <FileLink key={file} label={file} />);
     };
     
-    const getTanggalBerobat = (type, details) => {
-        if (type === 'RAWAT_INAP' || type === 'MATERNITY') {
-            return `${details.tanggalMulaiRawat} s/d ${details.tanggalSelesaiRawat}`;
+    // --- TAMBAHAN: Handler untuk tombol "Lanjutkan" pada popup konfirmasi ---
+    const handleConfirmOpenBrowser = async () => {
+        setBrowserConfirmVisible(false); // Tutup popup dulu
+        if (!currentFileUrl) {
+            Alert.alert("Error", "URL tidak valid.");
+            return;
         }
-        return details.tanggalRawat;
+        try {
+            await WebBrowser.openBrowserAsync(currentFileUrl, { 
+                controlsColor: '#2A458A',
+                presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN, 
+            });
+        } catch(error) {
+            console.error("Gagal membuka browser:", error);
+            Alert.alert("Error", "Tidak dapat membuka link di browser.");
+        }
+    };
+
+    const handleDownloadFileFromModal = async () => {
+        if (!currentFileUrl) {
+            Alert.alert("Error", "URL file tidak ditemukan.");
+            return;
+        }
+        try {
+            if (isModalVisible) {
+                setModalVisible(false);
+            }
+            await WebBrowser.openBrowserAsync(currentFileUrl);
+        } catch (error) {
+            console.error("Gagal membuka browser untuk mengunduh:", error);
+            Alert.alert("Gagal", "Tidak dapat membuka link download.");
+        }
+    };
+
+    // ... sisa kode fungsi (getStatusStyle, renderFileLinks, dll) tetap sama ...
+
+    const getStatusStyle = (status) => {
+        switch (status) {
+            case "Menunggu Persetujuan": return { text: "Menunggu Persetujuan", backgroundColor: "#0288D1" };
+            case "Belum Diverifikasi": return { text: "Belum Diverifikasi", backgroundColor: "#FFA000" };
+            case "Disetujui": return { text: "Disetujui", backgroundColor: "#4CAF50" };
+            case "Paid": return { text: "Telah Dibayar", backgroundColor: "#4CAF50" };
+            case "Dibatalkan": return { text: "Dibatalkan", backgroundColor: "#EF4444" };
+            default: return { text: status, backgroundColor: '#6B7280' };
+        }
+    };
+
+    const statusStyle = getStatusStyle(itemData.status);
+
+    const renderFileLinks = (type, noBukti) => {
+      let files = [];
+      switch (type) {
+          case 'Rawat Jalan': files = ['Kwitansi', 'Rincian Obat']; break;
+          case 'Rawat Inap':
+          case 'Maternity': files = ['Kwitansi', 'Rincian Obat', 'Hasil Lab', 'Resume Medis']; break;
+          case 'KB': files = ['Kwitansi']; break;
+          default: return null;
+      }
+      return files.map(file => {
+          const fileType = file.replace(/\s+/g, '_').toLowerCase();
+          return (
+            <FileLink 
+              key={file} 
+              label={file}
+              fileType={fileType} 
+              noBukti={noBukti} 
+              itemData={itemData}
+              onFilePress={handleFilePress} 
+            />
+          );
+      });
+    };
+
+    const biayaDigantiTampil = (itemData.status === "Disetujui" || itemData.status === "Paid") ? itemData.biayaDiganti : 'Rp 0';
+    
+    const dataToShow = {
+      noBukti: itemData.noBukti,
+      npkKaryawan: itemData.kryNpk || 'N/A', 
+      namaKaryawan: itemData.kryNama || 'N/A',
+      namaPasien: itemData.yangBerobat || 'N/A',
+      hubungan: itemData.hubungan || 'N/A',
+      jenisClaim: itemData.type || 'N/A',
+      tipeRS: itemData.rsTipe || 'N/A',
+      rumahSakit: itemData.rsNama || 'N/A',
+      dokter: itemData.rbmDokter || 'N/A',
+      tanggalPengajuan: itemData.headerDate || 'N/A',
+      tanggalBerobat: itemData.tanggalPeriksa || 'N/A',
+      biayaPeriksa: itemData.biayaPeriksa || 'N/A',
+      biayaDiganti: biayaDigantiTampil || 'N/A',
+      jenisPembayaran: itemData.jenisPembayaran || 'N/A',
+      diagnosis: itemData.dgsNama || 'N/A',
+      tipe: itemData.type || 'N/A',
+      status: itemData.status || 'N/A',
+      alasanPembatalan: itemData.rbmAlasanPembatalan || null,
     };
 
     return (
-        <View style={{flex: 1}}>
-            <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-              {/* Header */}
-              <ImageBackground 
+        <View style={styles.container}>
+            {/* --- TAMBAHAN: Popup konfirmasi untuk membuka browser --- */}
+            <CustomModal
+                animationType="fade"
+                transparent={true}
+                visible={isBrowserConfirmVisible}
+                onRequestClose={() => setBrowserConfirmVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Ionicons name="information-circle-outline" size={50} style={styles.infoIcon} />
+                        <Text style={styles.modalTitle}>Buka di Browser</Text>
+                        <Text style={styles.modalMessage}>File ini akan dibuka di browser. Lanjutkan?</Text>
+                        <View style={styles.modalButtonRow}>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.customCancelButton]}
+                                onPress={() => setBrowserConfirmVisible(false)}
+                            >
+                                <Text style={styles.customCancelButtonText}>Batal</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.confirmButton]}
+                                onPress={handleConfirmOpenBrowser}
+                            >
+                                <Text style={styles.confirmButtonText}>Lanjutkan</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </CustomModal>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+               <ImageBackground 
                 source={require("../../../../assets/bg_navbar.png")} 
                 style={styles.header} 
                 resizeMode="cover"
@@ -133,7 +235,6 @@ export default function DetailReimbursementScreen() {
                 <View style={{ width: 24 }} />
               </ImageBackground>
 
-              {/* Status Reimbursement (Sudah otomatis ter-update dari getStatusStyle) */}
               <View style={styles.statusContainer}>
                 <View style={styles.statusBox}>
                   <Text style={styles.statusLabel}>Status Reimbursement</Text>
@@ -143,41 +244,86 @@ export default function DetailReimbursementScreen() {
                 </View>
               </View>
 
-              {/* Box Detail Reimbursement */}
               <View style={styles.card}>
                 <Text style={styles.cardTitle}>Detail Reimbursement</Text>
-                <DetailRow label="No. Bukti" value={dataToShow.details.noBukti} />
-                <DetailRow label="NPK" value={dataToShow.details.npkKaryawan} />
-                <DetailRow label="Nama Karyawan" value={dataToShow.details.namaKaryawan} />
-                <DetailRow label="Nama Pasien" value={dataToShow.details.namaPasien} />
-                <DetailRow label="Hubungan" value={dataToShow.details.hubungan} />
-                <DetailRow label="Tipe RS" value={dataToShow.details.tipeRS} />
-                <DetailRow label="Rumah Sakit" value={dataToShow.details.rumahSakit} />
-                <DetailRow label="Dokter" value={dataToShow.details.dokter} />
-                <DetailRow label="Tanggal Pengajuan" value={dataToShow.details.tanggalPengajuan} />
-                <DetailRow label="Tanggal Berobat" value={getTanggalBerobat(dataToShow.type, dataToShow.details)} />
-                <DetailRow label="Reimbursement Cost" value={dataToShow.details.reimbursementCost} />
-                <DetailRow label="Jenis Pembayaran" value={dataToShow.details.jenisPembayaran} />
+                <DetailRow label="No. Bukti" value={dataToShow.noBukti} />
+                <DetailRow label="NPK Karyawan" value={dataToShow.npkKaryawan} />
+                <DetailRow label="Nama Karyawan" value={dataToShow.namaKaryawan} />
+                <DetailRow label="Nama Pasien" value={dataToShow.namaPasien} />
+                <DetailRow label="Hubungan" value={dataToShow.hubungan} />
+                <DetailRow label="Jenis Claim" value={dataToShow.jenisClaim} />
+                <DetailRow label="Tipe RS" value={dataToShow.tipeRS} />
+                <DetailRow label="Rumah Sakit" value={dataToShow.rumahSakit} />
+                <DetailRow label="Dokter" value={dataToShow.dokter} />
+                <DetailRow label="Tgl. Pengajuan" value={dataToShow.tanggalPengajuan} />
+                <DetailRow label="Tgl. Berobat" value={dataToShow.tanggalBerobat} />
+                <DetailRow label="Biaya Periksa" value={dataToShow.biayaPeriksa} />
+                <DetailRow label="Biaya Diganti" value={dataToShow.biayaDiganti} />
+                <DetailRow label="Jenis Pembayaran" value={dataToShow.jenisPembayaran} />
                 
-                {renderFileLinks(dataToShow.type)}
+                {renderFileLinks(dataToShow.tipe, dataToShow.noBukti)} 
               </View>
 
-              {/* Box Diagnosa */}
               <View style={styles.card}>
-                <Text style={styles.cardTitle}>{dataToShow.type === 'MATERNITY' ? 'Keterangan & Diagnosa' : 'Diagnosa'}</Text>
+                <Text style={styles.cardTitle}>Diagnosa</Text>
                 <DetailRow label="Diagnosa" value={dataToShow.diagnosis} />
               </View>
-              {/* Beri ruang ekstra di bawah agar tidak tertutup tombol */}
-              <View style={{height: 120}}/>
+
+              {/* 2. Render card alasan pembatalan secara kondisional */}
+              {dataToShow.status === 'Dibatalkan' && dataToShow.alasanPembatalan && (
+                <View style={[styles.card, styles.cancellationCard]}>
+                    <View style={styles.cancellationHeader}>
+                        <Ionicons name="information-circle-outline" size={22} color="#EF4444" />
+                        <Text style={[styles.cardTitle, styles.cancellationTitle]}>Alasan Pembatalan</Text>
+                    </View>
+                    <Text style={styles.cancellationReasonText}>
+                        {dataToShow.alasanPembatalan}
+                    </Text>
+                </View>
+              )}
+              <View style={{ height: (dataToShow.status === 'Menunggu Persetujuan' || dataToShow.status === 'Belum Diverifikasi') ? 110 : 50 }} />
+
             </ScrollView>
             
-            {(dataToShow.status === 'Waiting Approval' || dataToShow.status === 'Waiting for Verification') && (
+            <Modal 
+              isVisible={isModalVisible} 
+              onBackdropPress={() => setModalVisible(false)}
+              onBackButtonPress={() => setModalVisible(false)}
+              style={{ margin: 0 }}
+              onModalHide={() => setCurrentFileUrl(null)} 
+            >
+              <View style={styles.modalContainer}>
+                <View style={styles.modalHeader}>
+                    <TouchableOpacity style={styles.modalButton} onPress={handleDownloadFileFromModal}>
+                        <MaterialIcons name="file-download" size={28} color="#fff" />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.modalButton} onPress={() => setModalVisible(false)}>
+                        <MaterialIcons name="close" size={28} color="#fff" />
+                    </TouchableOpacity>
+                </View>
+
+                {currentFileUrl ? (
+                  <Image
+                    source={{ uri: currentFileUrl }}
+                    style={styles.fileViewer}
+                    resizeMode='contain'
+                  />
+                ) : (
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color="#fff" />
+                    </View>
+                )}
+              </View>
+            </Modal>
+            
+            {(dataToShow.status === 'Menunggu Persetujuan' || dataToShow.status === 'Belum Diverifikasi') && (
                  <View style={styles.bottomButtonContainer}>
+                    {/* --- PERUBAHAN DI SINI --- */}
                     <TouchableOpacity 
-                      style={styles.cancelButton} 
-                      onPress={() => navigation.navigate('PembatalanReimbursement', { itemData: dataToShow })}
+                      style={styles.bottomCancelButton} 
+                      onPress={() => navigation.navigate('PembatalanReimbursement', { itemData: itemData })}
                     >
-                         <Text style={styles.cancelButtonText}>Batalkan</Text>
+                         <Text style={styles.cancelButtonText}>Batalkan Pengajuan</Text>
                      </TouchableOpacity>
                  </View>
             )}
@@ -185,8 +331,28 @@ export default function DetailReimbursementScreen() {
     );
 }
 
-
+// --- TAMBAHAN: Style untuk popup modal kustom ---
 const styles = StyleSheet.create({
+    cancellationCard: {
+        backgroundColor: '#FFF1F2', // Latar belakang pink/merah muda
+        borderColor: '#FECDD3',   // Border merah muda lebih gelap
+        borderWidth: 1,
+    },
+    cancellationHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    cancellationTitle: {
+        color: '#991B1B', // Warna teks merah tua
+        marginBottom: 0,  // Reset margin bottom dari cardTitle umum
+        marginLeft: 8,
+    },
+    cancellationReasonText: {
+        fontSize: 14,
+        color: '#4B5563', // Warna teks abu-abu
+        lineHeight: 20,
+    },
     container: {
       flex: 1,
       backgroundColor: '#F5F7FA',
@@ -195,13 +361,13 @@ const styles = StyleSheet.create({
       flexDirection: "row", 
       alignItems: "center", 
       justifyContent: "space-between", 
-      paddingVertical: 15,
+      paddingTop: 40, 
+      paddingBottom: 15,
       paddingHorizontal: 16 
     },
     headerText: {
       color: "#fff",
       fontSize: 18,
-      fontFamily: "Poppins_700Bold",
       fontWeight: "bold",
     },
     statusContainer: {
@@ -219,7 +385,6 @@ const styles = StyleSheet.create({
     statusLabel: {
       color: '#1E2D56',
       fontWeight: 'bold',
-      fontFamily:"Poppins_700Bold",
       fontSize: 14,
     },
     statusBadge: {
@@ -231,7 +396,6 @@ const styles = StyleSheet.create({
       color: 'white',
       fontWeight: 'bold',
       fontSize: 12,
-      fontFamily:"Poppins_700Bold",
     },
     card: {
       backgroundColor: '#fff',
@@ -249,48 +413,42 @@ const styles = StyleSheet.create({
       marginBottom: 16,
       fontSize: 16,
       color: '#333',
-      fontFamily:"Poppins_700Bold",
     },
     detailRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       paddingVertical: 8,
     },
     label: {
       color: '#6B7280',
       fontSize: 14,
-      fontFamily:"Poppins_400Regular",
+      width: '40%',
     },
     value: {
       color: '#111827',
       fontSize: 14,
       fontWeight: 'bold',
-      fontFamily:"Poppins_700Bold",
       textAlign: 'right',
       flex: 1,
-      marginLeft: 10,
     },
     fileLinkText: {
-        color: '#3B82F6',
-        fontWeight: 'bold',
-        fontSize: 14,
-        fontFamily:"Poppins_700Bold",
+      color: '#3B82F6',
+      fontWeight: 'bold',
+      fontSize: 14,
+      textDecorationLine: 'underline',
     },
     bottomButtonContainer: {
       position: 'absolute',
       bottom: 0,
       left: 0,
       right: 0,
-      paddingHorizontal: 20,
-      paddingVertical: 15,
-      paddingBottom: 25,
+      padding: 20,
       backgroundColor: 'white',
       borderTopWidth: 1,
       borderTopColor: '#E5E7EB',
-      alignItems: 'center' 
     },
-    cancelButton: {
+    bottomCancelButton: { // Diubah namanya dari cancelButton
       backgroundColor: '#EF4444', 
       padding: 15,
       borderRadius: 12,
@@ -301,6 +459,102 @@ const styles = StyleSheet.create({
       color: '#fff',
       fontSize: 16,
       fontWeight: 'bold',
-      fontFamily:"Poppins_700Bold",
+    },
+    errorContainer: {
+        flex: 1, 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        padding: 20
+    },
+    errorText: {
+        fontSize: 18,
+        color: '#333',
+        textAlign: 'center'
+    },
+    modalContainer: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.9)', 
+    },
+    modalHeader: {
+        position: 'absolute',
+        top: 50,
+        right: 15,
+        zIndex: 10,
+        flexDirection: 'row',
+    },
+    modalButton: { // style umum untuk button di modal
+      flex: 1,
+      padding: 14,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginHorizontal: 8,
+    },
+    fileViewer: {
+        flex: 1,
+        width: '100%',
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+
+    // Style untuk Popup Konfirmasi
+    modalOverlay: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        width: '85%',
+        backgroundColor: 'white',
+        borderRadius: 12,
+        padding: 20,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    infoIcon: {
+        color: '#3B82F6', // Biru untuk informasi
+        marginBottom: 10,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 8,
+        color: '#111827',
+        textAlign: 'center',
+    },
+    modalMessage: {
+        fontSize: 15,
+        color: '#4B5563',
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+    modalButtonRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    customCancelButton: {
+        backgroundColor: '#E5E7EB', // abu-abu muda
+    },
+    customCancelButtonText: {
+        color: '#4B5563',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    confirmButton: {
+        backgroundColor: '#2A458A', // warna biru utama
+    },
+    confirmButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });

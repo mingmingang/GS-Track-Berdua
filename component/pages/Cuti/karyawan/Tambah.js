@@ -2,21 +2,28 @@ import React, { useState, useContext, useEffect } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   TextInput,
   ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import * as DocumentPicker from "expo-document-picker";
-import * as ImagePicker from "expo-image-picker";
 import { AuthContext } from "../../../backbone/AuthContext";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { getServerIP } from "../../../backbone/ApiConfig";
 import Dropdown from "../../../part/Dropdown";
 import Header from "../../../backbone/Header";
 import Toast from "react-native-toast-message";
+import styles from "../../../styles/Cuti/TambahCutiStyle";
+import {
+  fetchLastCutiId,
+  uploadLampiran,
+  submitPengajuanCuti,
+} from "../../../backbone/api";
+import {
+  pickFileFromCamera,
+  pickFileFromDocument,
+} from "../../../backbone/api";
+import i18n from "../../../backbone/i18n";
 
 const TambahCutiScreen = () => {
   const navigation = useNavigation();
@@ -38,11 +45,10 @@ const TambahCutiScreen = () => {
     fileUri: null,
   });
   const [items, setItems] = useState([
-    { label: "Cuti Pribadi", value: "Cuti Pribadi" },
-    { label: "Cuti Besar", value: "Cuti Besar" },
-    { label: "Cuti Khusus", value: "Cuti Khusus" },
+    { label: i18n.t("cuti.pribadi"), value: "Cuti Pribadi" },
+    { label: i18n.t("cuti.besar"), value: "Cuti Besar" },
+    { label: i18n.t("cuti.khusus"), value: "Cuti Khusus" },
   ]);
-
   const [openKhusus, setOpenKhusus] = useState(false);
   const [tipeCutiKhusus, setTipeCutiKhusus] = useState(null);
   const [itemsKhusus, setItemsKhusus] = useState([
@@ -114,94 +120,43 @@ const TambahCutiScreen = () => {
     { label: "Cuti Opname Karyawan", value: "Cuti Opname Karyawan" },
     { label: "Cuti Tugas Negara", value: "Cuti Tugas Negara" },
   ]);
-
   const { user } = useContext(AuthContext);
-
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [selectedStartDate, setSelectedStartDate] = useState(new Date());
   const [selectedEndDate, setSelectedEndDate] = useState(new Date());
-
   const [fileUri, setFileUri] = useState(null);
   const [fileName, setFileName] = useState(null);
-
-  const handlePickFile = async (source) => {
-    try {
-      if (source === "camera") {
-        const cameraPermission =
-          await ImagePicker.requestCameraPermissionsAsync();
-
-        if (!cameraPermission.granted) {
-          alert("Permission to access camera is required!");
-          return;
-        }
-
-        const result = await ImagePicker.launchCameraAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          aspect: [4, 3],
-          quality: 1,
-        });
-
-        if (!result.cancelled) {
-          const fileName = `photo_${Date.now()}.jpg`;
-          setFileName(fileName);
-          setFileUri(result.uri);
-
-          setFormData((prev) => ({
-            ...prev,
-            fileName,
-            fileUri: result.uri,
-          }));
-        }
-      } else {
-        const result = await DocumentPicker.getDocumentAsync({
-          type: ["image/*", "application/pdf", "application/zip"],
-          copyToCacheDirectory: true,
-          multiple: false,
-        });
-
-        if (!result.canceled && result.assets && result.assets.length > 0) {
-          const pickedFile = result.assets[0];
-          setFileName(pickedFile.name);
-          setFileUri(pickedFile.uri);
-
-          setFormData((prev) => ({
-            ...prev,
-            fileName: pickedFile.name,
-            fileUri: pickedFile.uri,
-          }));
-        }
-      }
-    } catch (error) {
-      console.log("Error:", error);
-    }
-  };
-
-  const fetchLastCutiId = async () => {
-    try {
-      const ip = await getServerIP();
-      const response = await fetch(`http://${ip}:8080/cuti`);
-      const data = await response.json();
-
-      if (data.length === 0) {
-        const newId = generateNewCutiId(null);
-        setGeneratedCutiId(newId);
-        setFormData((prev) => ({ ...prev, cutiId: newId }));
-      } else {
-        const validData = data.filter((item) => item && item.cutiId);
-        const sorted = validData.sort((a, b) =>
-          a.cutiId.localeCompare(b.cutiId)
-        );
-
-        const lastId = sorted[sorted.length - 1].cutiId;
-        const newId = generateNewCutiId(lastId);
-
-        setGeneratedCutiId(newId);
-        setFormData((prev) => ({ ...prev, cutiId: newId }));
-      }
-    } catch (error) {
-      console.error("Gagal mengambil data cuti:", error);
-    }
+  const subTipeCutiOptions = {
+    CH: "Cuti Haid",
+    CIL: "Cuti Istri Melahirkan/Keguguran",
+    CK: "Cuti Kematian Istri/suami/anak >200km",
+    CK1: "Cuti Kematian Istri/suami/anak",
+    CKB: "Cuti Khitan / Baptis",
+    CKH: "Cuti khusus Haji dan Kerohanian",
+    CKK: "Cuti kematian Kakek/Nenek/Cucu (karyawan) >200km",
+    CKK1: "Cuti kematian Kakek/Nenek/Cucu (karyawan)",
+    CKP: "Cuti Kematian Org tua/Mrtua/SdrKdg/OrgSermh >200km",
+    CKP1: "Cuti Kematian Org tua/Mrtua/SdrKdg/OrgSermh",
+    CKU: "Cuti Khusus Umroh",
+    CL: "Cuti Karyawati Melahirkan/Keguguran",
+    CN: "Cuti Karyawan Menikah",
+    CNA: "Cuti Menikahkan Anak",
+    COPN: "Cuti Opname Istri/Suami/Anak",
+    COPNB: "Cuti Opname Bapak/ibu/mertua/saudara kandung",
+    COPNK: "Cuti Opname Kakek/nenek/orang serumah",
+    CP: "Cuti Pribadi",
+    CPS: "Cuti Pribadi Security",
+    CTN: "Cuti Tugas Negara",
+    DISLAIN: "Dispensasi Lain Lain",
+    DISP: "Cuti Dispensasi Bencana Alam dan Tugas Negara",
+    DM: "Dispensasi Mumps (Gondongan)",
+    DP: "Cuti Dispensasi Sakit Mata dan Cacar",
+    DPTM: "Cuti Dispensasi Tetangga Meninggal",
+    MPP: "Masa Persiapan Pensiun",
+    OPN: "Cuti Opname Karyawan",
+    SDC: "Sakit dgn Surat Dokter selain klinik GS Battery",
+    SDK: "Surat Dokter Kecelakaan Kerja",
+    SSGS: "Sakit dgn Surat Dokter klinik GS Battery",
   };
 
   const generateNewCutiId = (lastId) => {
@@ -258,6 +213,32 @@ const TambahCutiScreen = () => {
   };
 
   useEffect(() => {
+    const getCutiId = async () => {
+      try {
+        const data = await fetchLastCutiId();
+        if (data.length === 0) {
+          const newId = generateNewCutiId(null);
+          setGeneratedCutiId(newId);
+          setFormData((prev) => ({ ...prev, cutiId: newId }));
+        } else {
+          const validData = data.filter((item) => item && item.cutiId);
+          const sorted = validData.sort((a, b) =>
+            a.cutiId.localeCompare(b.cutiId)
+          );
+          const lastId = sorted[sorted.length - 1].cutiId;
+          const newId = generateNewCutiId(lastId);
+          setGeneratedCutiId(newId);
+          setFormData((prev) => ({ ...prev, cutiId: newId }));
+        }
+      } catch (error) {
+        console.error("Gagal mengambil data cuti:", error);
+      }
+    };
+
+    getCutiId();
+  }, []);
+
+  useEffect(() => {
     fetchLastCutiId();
   }, []);
 
@@ -284,83 +265,17 @@ const TambahCutiScreen = () => {
     }));
   }, [tipeCutiKhusus]);
 
-  const uploadLampiran = async () => {
-    try {
-      if (!formData.fileUri) return null;
-
-      const ip = await getServerIP();
-      const uri = formData.fileUri;
-      const filename = formData.fileName;
-
-      const formDataUpload = new FormData();
-      formDataUpload.append("file", {
-        uri: uri,
-        name: filename,
-        type: "application/octet-stream",
-      });
-
-      const response = await fetch(`http://${ip}:8080/cuti/upload-lampiran`, {
-        method: "POST",
-        body: formDataUpload,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      console.log("hasil unggah", response);
-      if (!response.ok) {
-        throw new Error("Upload lampiran gagal");
-      }
-
-      const uploadedFileName = await response.text();
-      return uploadedFileName;
-    } catch (error) {
-      console.error("Error upload lampiran:", error);
-      return null;
-    }
-  };
-
-  const subTipeCutiOptions = {
-    CH: "Cuti Haid",
-    CIL: "Cuti Istri Melahirkan/Keguguran",
-    CK: "Cuti Kematian Istri/suami/anak >200km",
-    CK1: "Cuti Kematian Istri/suami/anak",
-    CKB: "Cuti Khitan / Baptis",
-    CKH: "Cuti khusus Haji dan Kerohanian",
-    CKK: "Cuti kematian Kakek/Nenek/Cucu (karyawan) >200km",
-    CKK1: "Cuti kematian Kakek/Nenek/Cucu (karyawan)",
-    CKP: "Cuti Kematian Org tua/Mrtua/SdrKdg/OrgSermh >200km",
-    CKP1: "Cuti Kematian Org tua/Mrtua/SdrKdg/OrgSermh",
-    CKU: "Cuti Khusus Umroh",
-    CL: "Cuti Karyawati Melahirkan/Keguguran",
-    CN: "Cuti Karyawan Menikah",
-    CNA: "Cuti Menikahkan Anak",
-    COPN: "Cuti Opname Istri/Suami/Anak",
-    COPNB: "Cuti Opname Bapak/ibu/mertua/saudara kandung",
-    COPNK: "Cuti Opname Kakek/nenek/orang serumah",
-    CP: "Cuti Pribadi",
-    CPS: "Cuti Pribadi Security",
-    CTN: "Cuti Tugas Negara",
-    DISLAIN: "Dispensasi Lain Lain",
-    DISP: "Cuti Dispensasi Bencana Alam dan Tugas Negara",
-    DM: "Dispensasi Mumps (Gondongan)",
-    DP: "Cuti Dispensasi Sakit Mata dan Cacar",
-    DPTM: "Cuti Dispensasi Tetangga Meninggal",
-    MPP: "Masa Persiapan Pensiun",
-    OPN: "Cuti Opname Karyawan",
-    SDC: "Sakit dgn Surat Dokter selain klinik GS Battery",
-    SDK: "Surat Dokter Kecelakaan Kerja",
-    SSGS: "Sakit dgn Surat Dokter klinik GS Battery",
-  };
-
   const handleSubmit = async () => {
     try {
-      const ip = await getServerIP();
       const today = new Date();
 
       let uploadedFileName = "";
       if (formData.fileUri) {
-        uploadedFileName = await uploadLampiran();
+        uploadedFileName = await uploadLampiran(
+          formData.fileUri,
+          formData.fileName,
+          "cuti/upload-lampiran"
+        );
       }
 
       const subTipe = (() => {
@@ -395,15 +310,7 @@ const TambahCutiScreen = () => {
         tanggalAwal: selectedStartDate.toISOString().split("T")[0],
       };
 
-      console.log("Data yang akan disubmit:", payload);
-
-      const response = await fetch(`http://${ip}:8080/cuti`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const result = await response.json();
+      const { response, result } = await submitPengajuanCuti(payload);
 
       if (response.ok) {
         Toast.show({
@@ -426,15 +333,38 @@ const TambahCutiScreen = () => {
     }
   };
 
+  const handlePickFile = async (source) => {
+    try {
+      let picked = null;
+      if (source === "camera") {
+        picked = await pickFileFromCamera();
+      } else {
+        picked = await pickFileFromDocument();
+      }
+
+      if (picked) {
+        setFileName(picked.fileName);
+        setFileUri(picked.fileUri);
+        setFormData((prev) => ({
+          ...prev,
+          fileName: picked.fileName,
+          fileUri: picked.fileUri,
+        }));
+      }
+    } catch (error) {
+      alert("Gagal memilih file.");
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Header title="Tambah Cuti" />
+      <Header title={i18n.t("tambahCuti.judulHalaman")} />
 
       <ScrollView
         contentContainerStyle={styles.form}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.label}>No. Pengajuan Cuti</Text>
+        <Text style={styles.label}>{i18n.t("tambahCuti.noPengajuan")}</Text>
         <TextInput
           style={styles.inputClose}
           editable={false}
@@ -442,7 +372,8 @@ const TambahCutiScreen = () => {
         />
 
         <Text style={styles.label}>
-          Permohonan Untuk <Text style={{ color: "red" }}>*</Text>
+          {i18n.t("tambahCuti.permohonanUntuk")}{" "}
+          <Text style={{ color: "red" }}>*</Text>
         </Text>
         <TextInput
           style={styles.inputClose}
@@ -451,7 +382,8 @@ const TambahCutiScreen = () => {
         />
 
         <Text style={styles.label}>
-          Tipe Cuti <Text style={{ color: "red" }}>*</Text>
+          {i18n.t("tambahCuti.tipeCuti")}{" "}
+          <Text style={{ color: "red" }}>*</Text>
         </Text>
         <Dropdown
           open={open}
@@ -460,15 +392,16 @@ const TambahCutiScreen = () => {
           setOpen={setOpen}
           setValue={setTipeCuti}
           setItems={setItems}
-          placeholder="Pilih Jenis Cuti"
-          modalTitle="Pilih Jenis Cuti"
+          placeholder={i18n.t("tambahCuti.placeholderTipeCuti")}
+          modalTitle={i18n.t("tambahCuti.modalTipeCuti")}
           zIndex={1000}
         />
 
         {tipeCuti === "Cuti Khusus" && (
           <>
             <Text style={{ marginTop: 10, marginBottom: 8 }}>
-              Cuti Khusus<Text style={{ color: "red" }}> *</Text>
+              {i18n.t("tambahCuti.tipeCutiKhusus")}
+              <Text style={{ color: "red" }}> *</Text>
             </Text>
             <Dropdown
               open={openKhusus}
@@ -477,8 +410,8 @@ const TambahCutiScreen = () => {
               setOpen={setOpenKhusus}
               setValue={setTipeCutiKhusus}
               setItems={setItemsKhusus}
-              placeholder="Pilih Jenis Cuti Khusus"
-              modalTitle="Pilih Jenis Cuti Khusus"
+              placeholder={i18n.t("tambahCuti.placeholderTipeCutiKhusus")}
+              modalTitle={i18n.t("tambahCuti.modalTipeCutiKhusus")}
               zIndex={1000}
             />
           </>
@@ -494,7 +427,8 @@ const TambahCutiScreen = () => {
           >
             <View style={{ flex: 1 }}>
               <Text style={styles.label}>
-                Mulai Dari <Text style={{ color: "red" }}>*</Text>
+                {i18n.t("tambahCuti.mulaiDari")}{" "}
+                <Text style={{ color: "red" }}>*</Text>
               </Text>
               <View>
                 <TouchableOpacity
@@ -551,7 +485,8 @@ const TambahCutiScreen = () => {
 
             <View style={{ flex: 1 }}>
               <Text style={styles.label}>
-                Sampai Dengan <Text style={{ color: "red" }}>*</Text>
+                {i18n.t("tambahCuti.sampaiDengan")}{" "}
+                <Text style={{ color: "red" }}>*</Text>
               </Text>
 
               <View>
@@ -603,18 +538,18 @@ const TambahCutiScreen = () => {
           </View>
         </View>
 
-        <Text style={styles.label}>Durasi</Text>
+        <Text style={styles.label}>{i18n.t("tambahCuti.durasi")}</Text>
         <TextInput
           style={styles.input}
           value={durasi.toString()}
           editable={false}
         />
 
-        <Text style={styles.label}>Keterangan</Text>
+        <Text style={styles.label}>{i18n.t("tambahCuti.keterangan")}</Text>
         <TextInput
           style={[styles.input, { height: 100 }]}
           multiline
-          placeholder="Masukan Keterangan ..."
+          placeholder={i18n.t("tambahCuti.placeholderKeterangan")}
           value={formData.keterangan}
           onChangeText={(text) =>
             setFormData((prev) => ({ ...prev, keterangan: text }))
@@ -624,37 +559,30 @@ const TambahCutiScreen = () => {
         <>
           <View style={{ marginTop: 10 }}>
             <Text style={styles.label}>
-              Berkas Lampiran
+              {i18n.t("tambahCuti.lampiran")}{" "}
               {formData.tipeCuti === "Cuti Khusus" && (
                 <Text style={{ color: "red" }}> *</Text>
               )}
             </Text>
 
             <View style={{ flexDirection: "row", gap: 10 }}>
-              {/* <TouchableOpacity
-                style={styles.attachmentButton}
-                onPress={() => handlePickFile("camera")}
-              >
-                <Ionicons name="camera" size={20} color="#1E2D56" />
-                <Text>Ambil Foto</Text>
-              </TouchableOpacity> */}
-
               <TouchableOpacity
                 style={styles.attachmentButton}
                 onPress={() => handlePickFile("file")}
               >
                 <Ionicons name="document" size={20} color="#1E2D56" />
                 <Text style={{ fontFamily: "Poppins_600SemiBold" }}>
-                  Pilih File
+                  {i18n.t("tambahCuti.pilihFile")}
                 </Text>
               </TouchableOpacity>
             </View>
 
             {fileName && (
               <View style={{ marginTop: 12 }}>
-                <Text style={{ fontFamily: "Poppins_500Medium" }}>
-                  File terpilih: {fileName}
-                </Text>
+              <Text style={{ fontFamily: "Poppins_500Medium" }}>
+  {i18n.t("tambahCuti.fileTerpilih")}: {fileName}
+</Text>
+
 
                 {fileUri &&
                   (fileName.endsWith(".jpg") ||
@@ -687,7 +615,7 @@ const TambahCutiScreen = () => {
                     }}
                   >
                     <Ionicons name="document-text" size={48} color="#e74c3c" />
-                    <Text style={{ marginTop: 8 }}>Dokumen PDF</Text>
+                   <Text style={{ marginTop: 8 }}>{i18n.t("tambahCuti.previewPDF")}</Text>
                   </View>
                 )}
 
@@ -704,21 +632,14 @@ const TambahCutiScreen = () => {
                     }}
                   >
                     <Ionicons name="folder" size={48} color="#f39c12" />
-                    <Text style={{ marginTop: 8 }}>File ZIP</Text>
+                   <Text style={{ marginTop: 8 }}>{i18n.t("tambahCuti.previewZIP")}</Text>
                   </View>
                 )}
               </View>
             )}
           </View>
-          <Text
-            style={{
-              color: "red",
-              fontSize: 12,
-              marginTop: 4,
-              fontFamily: "Poppins_400Regular",
-            }}
-          >
-            * jpg, pdf, zip (Max 2mb)
+          <Text style={{ color: "red", fontSize: 12 }}>
+            {i18n.t("tambahCuti.formatFile")}
           </Text>
 
           <View
@@ -729,15 +650,11 @@ const TambahCutiScreen = () => {
               borderRadius: 6,
             }}
           >
-            <Text
-              style={{ marginBottom: 4, fontFamily: "Poppins_600SemiBold" }}
-            >
-              Note:
-            </Text>
-            <Text style={{ fontSize: 12, fontFamily: "Poppins_400Regular" }}>
+            <Text>{i18n.t("tambahCuti.note")}</Text>
+            <Text style={{ fontSize: 12 }}>
               {tipeCuti === "Cuti Khusus"
-                ? "Cuti Khusus wajib melampirkan berkas (max 2mb)"
-                : "Lampiran bersifat opsional untuk tipe cuti ini."}
+                ? i18n.t("tambahCuti.lampiranWajib")
+                : i18n.t("tambahCuti.lampiranOpsional")}
             </Text>
           </View>
         </>
@@ -761,7 +678,9 @@ const TambahCutiScreen = () => {
             color="#fff"
             style={{ marginRight: 8 }}
           />
-          <Text style={styles.buttonText}>Print</Text>
+          <Text style={styles.buttonText}>
+            {i18n.t("tambahCuti.tombolPrint")}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -785,7 +704,9 @@ const TambahCutiScreen = () => {
             color="#fff"
             style={{ marginRight: 8 }}
           />
-          <Text style={styles.buttonText}>Submit</Text>
+          <Text style={styles.buttonText}>
+            {i18n.t("tambahCuti.tombolSubmit")}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -793,78 +714,3 @@ const TambahCutiScreen = () => {
 };
 
 export default TambahCutiScreen;
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  header: {
-    backgroundColor: "#1E2D56",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingTop: 40,
-    paddingHorizontal: 16,
-    height: 100,
-  },
-  headerText: {
-    color: "#fff",
-    fontSize: 18,
-    fontFamily: "Poppins_700Bold",
-  },
-  form: { padding: 16 },
-  label: {
-    marginBottom: 4,
-    fontFamily: "Poppins_700Bold",
-    color: "#1E2D56",
-  },
-  inputClose: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginBottom: 12,
-    backgroundColor: "#F8F9FA",
-    fontFamily: "Poppins_400Regular",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginBottom: 12,
-    backgroundColor: "#fff",
-    fontFamily: "Poppins_400Regular",
-  },
-  row: { flexDirection: "row", justifyContent: "space-between" },
-  buttonRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    padding: 15,
-    paddingBottom: 30,
-    borderTopWidth: 1,
-    borderColor: "#eee",
-  },
-  button: {
-    flex: 1,
-    paddingVertical: 12,
-    marginHorizontal: 4,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  attachmentButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#1E2D56",
-    padding: 10,
-    borderRadius: 8,
-    gap: 5,
-  },
-  buttonText: {
-    color: "#fff",
-    fontFamily: "Poppins_700Bold",
-  },
-});

@@ -1,4 +1,3 @@
-// screens/ForgotPassword.js
 import React, { useState } from "react";
 import {
   View,
@@ -8,16 +7,19 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Image
+  Image,
 } from "react-native";
 import Toast from "react-native-toast-message";
+import i18n from "../../component/backbone/i18n";
+import { getServerIP } from "../backbone/ApiConfig";
 
 const ForgotPassword = ({ navigation }) => {
   const [email, setEmail] = useState("");
 
   const handleForgotPassword = async () => {
     try {
-      const response = await fetch("http://172.20.10.2:8080/forgot-password", {
+      const ip = await getServerIP();
+      const response = await fetch(`http://${ip}:8080/forgot-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -30,22 +32,22 @@ const ForgotPassword = ({ navigation }) => {
       if (result.success) {
         Toast.show({
           type: "success",
-          text1: "Email Terkirim",
-          text2: "Silakan cek email Anda untuk reset password.",
+          text1: i18n.t("forgot.success_title"),
+          text2: i18n.t("forgot.success_message"),
         });
         navigation.goBack();
       } else {
         Toast.show({
           type: "error",
-          text1: "Gagal",
-          text2: result.message || "Email tidak ditemukan.",
+          text1: i18n.t("forgot.failed_title"),
+          text2: result.message || i18n.t("forgot.failed_message"),
         });
       }
     } catch (error) {
       Toast.show({
         type: "error",
-        text1: "Kesalahan Server",
-        text2: "Tidak dapat mengirim permintaan reset.",
+        text1: i18n.t("forgot.server_error_title"),
+        text2: i18n.t("forgot.server_error_message"),
       });
     }
   };
@@ -55,22 +57,20 @@ const ForgotPassword = ({ navigation }) => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
-          <View style={styles.circleTopRight} />
-              <View style={styles.circleBottomLeft} />
-              
-        <Image
-        source={require("../../assets/forgotpass.png")} 
-        style={styles.image}
-        />
+      <View style={styles.circleTopRight} />
+      <View style={styles.circleBottomLeft} />
 
-      <Text style={styles.title}>Lupa Kata Sandi</Text>
-      <Text style={styles.subtitle}>
-        Masukkan email yang terdaftar untuk menerima link reset kata sandi.
-      </Text>
+      <Image
+        source={require("../../assets/forgotpass.png")}
+        style={styles.image}
+      />
+
+      <Text style={styles.title}>{i18n.t("forgot.title")}</Text>
+      <Text style={styles.subtitle}>{i18n.t("forgot.subtitle")}</Text>
 
       <TextInput
         style={styles.input}
-        placeholder="Masukkan Email..."
+        placeholder={i18n.t("forgot.placeholder")}
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
@@ -78,11 +78,11 @@ const ForgotPassword = ({ navigation }) => {
       />
 
       <TouchableOpacity style={styles.button} onPress={handleForgotPassword}>
-        <Text style={styles.buttonText}>Kirim Email Reset</Text>
+        <Text style={styles.buttonText}>{i18n.t("forgot.button")}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Text style={styles.backText}>← Kembali ke Login</Text>
+        <Text style={styles.backText}>← {i18n.t("forgot.back")}</Text>
       </TouchableOpacity>
     </KeyboardAvoidingView>
   );
@@ -121,13 +121,13 @@ const styles = StyleSheet.create({
     color: "#21376A",
     fontWeight: "bold",
     marginBottom: 15,
-    fontFamily:"Poppins_700Bold"
+    fontFamily: "Poppins_700Bold",
   },
   subtitle: {
     color: "#666",
     marginBottom: 10,
     fontSize: 15,
-    fontFamily:"Poppins_500Medium"
+    fontFamily: "Poppins_500Medium",
   },
   input: {
     borderWidth: 1,
@@ -156,11 +156,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   image: {
-  width: 380,
-  height: 220,
-  resizeMode: "contain",
-  alignSelf: "center",
-  marginBottom: 20,
-},
-
+    width: 380,
+    height: 220,
+    resizeMode: "contain",
+    alignSelf: "center",
+    marginBottom: 20,
+  },
 });

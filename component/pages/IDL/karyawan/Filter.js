@@ -11,7 +11,6 @@ import {
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { ImageBackground } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import PanduanIDL from "../../../part/PanduanIDL";
 
 const FilterIDLScreen = () => {
   const navigation = useNavigation();
@@ -66,12 +65,12 @@ const FilterIDLScreen = () => {
         <View style={styles.infoBanner}>
           <Ionicons name="information-circle" size={20} color="#4A90E2" />
           <Text style={styles.infoText}>
-            IDL yang diperlihatkan dari hari setelah ini dan setelahnya tidak
+            IMP yang diperlihatkan dari hari setelah ini dan setelahnya tidak
             akan menampilkan apa-apa.
           </Text>
         </View>
 
-        {/* Periode IDL */}
+        {/* Periode IMP */}
         <Text style={styles.sectionTitle}>Periode IDL</Text>
         <View style={styles.dateRangeContainer}>
           <View style={styles.dateInputContainer}>
@@ -107,7 +106,7 @@ const FilterIDLScreen = () => {
           </View>
         </View>
 
-        {/* Status IDL */}
+        {/* Status IMP */}
         <Text style={styles.sectionTitle}>Status IDL</Text>
 
         <TouchableOpacity

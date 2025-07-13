@@ -3,10 +3,8 @@ import {
   View,
   Text,
   StyleSheet,
-  Image,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   Dimensions,
 } from "react-native";
 import {
@@ -16,74 +14,24 @@ import {
   FontAwesome,
 } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import Login from "./Login";
 import { AuthContext } from "../backbone/AuthContext";
 import Navbar from "../backbone/Navbar";
+import i18n from "../backbone/i18n";
 
 const screenWidth = Dimensions.get("window").width;
 const itemWidth = (screenWidth - 40) / 4;
 
 const menuItems = [
-  {
-    title: "Kehadiran",
-    icon: "home",
-    iconType: "MaterialIcons", // dari MaterialIcons
-    color: "#BFD7FF",
-  },
-  {
-    title: "Cuti",
-    icon: "calendar-today", // nama yang benar di MaterialIcons
-    iconType: "MaterialIcons",
-    color: "#F5C6C6",
-  },
-  {
-    title: "IDL",
-    icon: "airplane-ticket",
-    iconType: "MaterialIcons", // dari FontAwesome
-    color: "#DCC6F5",
-  },
-  {
-    title: "Aktivitas",
-    icon: "access-time",
-    iconType: "MaterialIcons",
-    color: "#F5D2B3",
-  },
-  {
-    title: "Surat Jaminan",
-    icon: "location-city",
-    iconType: "MaterialIcons",
-    color: "#C9E6C1",
-  },
-  {
-    title: "Lembur",
-    icon: "account-balance-wallet",
-    iconType: "MaterialIcons",
-    color: "#E8D4AE",
-  },
-  {
-    title: "Reimburse Obat",
-    icon: "credit-card",
-    iconType: "FontAwesome", // alternatif: MaterialIcons
-    color: "#C9E6E3",
-  },
-  {
-    title: "Pusaka",
-    icon: "bar-chart",
-    iconType: "FontAwesome",
-    color: "#C7DBF7",
-  },
-  {
-    title: "IMP",
-    icon: "directions-walk",
-    iconType: "MaterialIcons",
-    color: "#FBE59D",
-  },
-  {
-    title: "Permintaan",
-    icon: "local-cafe",
-    iconType: "MaterialIcons",
-    color: "#B4F1EE",
-  },
+  { titleKey: "menu_attendance", icon: "home", iconType: "MaterialIcons", color: "#BFD7FF" },
+  { titleKey: "menu_leave", icon: "calendar-today", iconType: "MaterialIcons", color: "#F5C6C6" },
+  { titleKey: "menu_idl", icon: "airplane-ticket", iconType: "MaterialIcons", color: "#DCC6F5" },
+  { titleKey: "menu_activity", icon: "access-time", iconType: "MaterialIcons", color: "#F5D2B3" },
+  { titleKey: "menu_guarantee", icon: "location-city", iconType: "MaterialIcons", color: "#C9E6C1" },
+  { titleKey: "menu_overtime", icon: "account-balance-wallet", iconType: "MaterialIcons", color: "#E8D4AE" },
+  { titleKey: "menu_reimburse", icon: "credit-card", iconType: "FontAwesome", color: "#C9E6E3" },
+  { titleKey: "menu_pusaka", icon: "bar-chart", iconType: "FontAwesome", color: "#C7DBF7" },
+  { titleKey: "menu_imp", icon: "directions-walk", iconType: "MaterialIcons", color: "#FBE59D" },
+  { titleKey: "menu_request", icon: "local-cafe", iconType: "MaterialIcons", color: "#B4F1EE" },
 ];
 
 export default function HomeScreen() {
@@ -103,21 +51,23 @@ export default function HomeScreen() {
                 style={{ marginRight: 5 }}
               />
               <View style={styles.headerText}>
-                <Text style={styles.welcomeText}>Selamat Datang Kembali</Text>
-                <Text style={styles.userName}>{user?.namaKaryawan || "Pengguna"}!</Text>
+                <Text style={styles.welcomeText}>{i18n.t("welcome_back")}</Text>
+                <Text style={styles.userName}>
+                  {user?.namaKaryawan || "Pengguna"}!
+                </Text>
               </View>
             </View>
-            <TouchableOpacity>
+            <TouchableOpacity   onPress={() => navigation.navigate("Notification")}>
               <MaterialIcons name="notifications" size={28} color="#1E3668" />
             </TouchableOpacity>
           </View>
 
           <View style={styles.statusRow}>
             <View style={styles.statusTag}>
-              <Text style={styles.statusText}>📶 Sinyal Baik</Text>
+              <Text style={styles.statusText}>{i18n.t("signal_good")}</Text>
             </View>
             <View style={styles.statusTag}>
-              <Text style={styles.statusText}>🛰️ GPS Terhubung</Text>
+              <Text style={styles.statusText}>{i18n.t("gps_connected")}</Text>
             </View>
           </View>
         </View>
@@ -126,10 +76,12 @@ export default function HomeScreen() {
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
               <MaterialIcons name="home" size={20} color="#fff" />
-              <Text style={styles.attendanceTitle}>Kehadiranku hari ini</Text>
+              <Text style={styles.attendanceTitle}>
+                {i18n.t("my_attendance_today")}
+              </Text>
             </View>
             <Text style={styles.attendanceDate}>
-              {new Date().toLocaleDateString("id-ID", {
+              {new Date().toLocaleDateString(i18n.language, {
                 day: "2-digit",
                 month: "short",
                 year: "numeric",
@@ -140,14 +92,14 @@ export default function HomeScreen() {
           <View style={styles.timeRow}>
             <View style={styles.timeItem}>
               <Text style={styles.timeText}>07:11</Text>
-              <Text style={styles.timeLabel}>Masuk</Text>
+              <Text style={styles.timeLabel}>{i18n.t("entry")}</Text>
             </View>
 
             <Text style={styles.arrow}>→</Text>
 
             <View style={styles.timeItem}>
               <Text style={styles.timeText}>16:01</Text>
-              <Text style={styles.timeLabel}>Keluar</Text>
+              <Text style={styles.timeLabel}>{i18n.t("exit")}</Text>
             </View>
           </View>
         </View>
@@ -161,22 +113,28 @@ export default function HomeScreen() {
                 ? FontAwesome5
                 : MaterialIcons;
 
+            const title = i18n.t(item.titleKey);
+
             const handlePress = () => {
-              if (item.title === "Cuti") {
-                navigation.navigate("Cuti", { user: user });
+              if (item.titleKey === "menu_reimburse") {
+                navigation.navigate(
+                  user?.jabatan === "Atasan"
+                    ? "ReimbursementAtasan"
+                    : "ReimbursementKaryawan"
+                );
+                return;
               }
-              if (item.title === "IDL") {
-                navigation.navigate("IDL");
+              if (item.titleKey === "menu_leave") {
+                navigation.navigate(
+                  user?.kry_jabatan === "Atasan" ? "CutiAtasan" : "Cuti",
+                  { user }
+                );
+                return;
               }
-              if (item.title === "IMP") {
-                navigation.navigate("IMP");
-              }
-              if (item.title === "Reimburse Obat") {
-                navigation.navigate("Reimbursement");
-              }
-              if (item.title === "Permintaan") {
+              if (item.titleKey === "menu_idl") navigation.navigate("IDL");
+              if (item.titleKey === "menu_imp") navigation.navigate("IMP");
+              if (item.titleKey === "menu_request")
                 navigation.navigate("PermintaanBerkas");
-              }
             };
 
             return (
@@ -186,7 +144,7 @@ export default function HomeScreen() {
                 >
                   <IconComponent name={item.icon} size={24} color="#fff" />
                 </View>
-                <Text style={styles.menuText}>{item.title}</Text>
+                <Text style={styles.menuText}>{title}</Text>
               </TouchableOpacity>
             );
           })}
@@ -199,34 +157,17 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff", paddingTop: 30 },
-  header: {
-    padding: 16,
-    backgroundColor: "#fff",
-  },
+  header: { padding: 16, backgroundColor: "#fff" },
   headerContent: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 10, // Bagi dua sisi kiri-kanan
+    marginBottom: 10,
   },
-  leftSection: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  headerText: {
-    flexDirection: "column",
-  },
-  welcomeText: {
-    fontSize: 14,
-    color: "#555",
-    fontFamily: "Poppins_400Regular",
-  },
-  userName: {
-    fontSize: 18,
-    fontFamily: "Poppins_700Bold",
-    fontWeight: "bold",
-    color: "#1E3668",
-  },
+  leftSection: { flexDirection: "row", alignItems: "center" },
+  headerText: { flexDirection: "column" },
+  welcomeText: { fontSize: 14, color: "#555" },
+  userName: { fontSize: 18, fontWeight: "bold", color: "#1E3668" },
   statusRow: { flexDirection: "row", gap: 2, paddingLeft: 10 },
   statusTag: {
     backgroundColor: "#E3F6DC",
@@ -235,11 +176,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginRight: 10,
   },
-  statusText: {
-    fontSize: 12,
-    color: "#388E3C",
-    fontFamily: "Poppins_600SemiBold",
-  },
+  statusText: { fontSize: 12, color: "#388E3C" },
   attendanceCard: {
     backgroundColor: "#1E3668",
     borderRadius: 20,
@@ -254,45 +191,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+  headerLeft: { flexDirection: "row", alignItems: "center" },
   attendanceTitle: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
     marginLeft: 8,
-    fontFamily: "Poppins_600SemiBold",
   },
-  attendanceDate: {
-    color: "#fff",
-    fontSize: 14,
-    fontFamily: "Poppins_600SemiBold",
-  },
+  attendanceDate: { color: "#fff", fontSize: 14 },
   timeRow: {
     flexDirection: "row",
     justifyContent: "space-evenly",
     alignItems: "center",
   },
-  timeItem: {
-    alignItems: "center",
-  },
-  timeText: {
-    fontSize: 36,
-    fontWeight: "bold",
-    color: "#fff",
-  },
-  timeLabel: {
-    marginTop: 4,
-    fontSize: 14,
-    color: "#bfc6d6",
-  },
-  arrow: {
-    fontSize: 28,
-    color: "#fff",
-    marginHorizontal: 10,
-  },
+  timeItem: { alignItems: "center" },
+  timeText: { fontSize: 36, fontWeight: "bold", color: "#fff" },
+  timeLabel: { marginTop: 4, fontSize: 14, color: "#bfc6d6" },
+  arrow: { fontSize: 28, color: "#fff", marginHorizontal: 10 },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -300,24 +215,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   menuItem: {
-    width: itemWidth - 16, // 16 adalah total margin (8 kiri, 8 kanan)
+    width: itemWidth - 16,
     margin: 10,
     aspectRatio: 1,
     borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
   },
-  menuIcon: { fontSize: 24, marginBottom: 5 },
-  menuText: {
-    fontSize: 12,
-    textAlign: "center",
-    fontFamily: "Poppins_600SemiBold",
-  },
-  vaksinNote: {
-    margin: 20,
-    padding: 15,
-    backgroundColor: "#A4DE8F",
-    borderRadius: 10,
-  },
-  vaksinText: { color: "#fff", fontWeight: "bold", textAlign: "center" },
+  menuText: { fontSize: 12, textAlign: "center" },
 });

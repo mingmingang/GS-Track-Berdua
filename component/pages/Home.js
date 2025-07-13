@@ -114,7 +114,7 @@ export default function HomeScreen() {
 
   const loadCurrentHadir = async () => {
     try {
-      const current = await getData("lastLogin")
+      const current = await getData("lastLogin");
       const response = await fetch(BASE_URL+"kehadiran/currenthadir", {
         method: "POST",
         headers: {

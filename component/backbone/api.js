@@ -61,7 +61,7 @@ export const uploadLampiran = async (fileUri, fileName, api) => {
 };
 
 export const updateUserPassword = async ({ npk, oldPassword, newPassword }) => {
-  console.log("coba", npk, oldPassword, newPassword)
+  console.log("coba", npk, oldPassword, newPassword);
   try {
     const ip = await getServerIP();
     const response = await fetch(`http://${ip}:8080/karyawan/password`, {
@@ -90,6 +90,8 @@ export const updateProfileData = async (npk, formData) => {
       );
     }
 
+    console.log("data alamat", formData.alamat);
+
     const payload = {
       npk: npk,
       namaKaryawan: formData.namaKaryawan,
@@ -100,9 +102,12 @@ export const updateProfileData = async (npk, formData) => {
       tanggalLahir: formData.tanggalLahir,
       status: formData.status || "Aktif",
       fotoKaryawan: uploadedFileName || null,
+      alamat: JSON.stringify(formData.alamat),
       modifBy: npk,
       modifDate: new Date().toISOString(),
     };
+
+    console.log("payload", payload);
     const ip = await getServerIP();
     const response = await fetch(`http://${ip}:8080/karyawan`, {
       method: "PUT",

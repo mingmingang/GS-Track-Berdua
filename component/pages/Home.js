@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  Image,
 } from "react-native";
 import {
   Ionicons,
@@ -18,40 +19,104 @@ import { AuthContext } from "../backbone/AuthContext";
 import Navbar from "../backbone/Navbar";
 import i18n from "../backbone/i18n";
 import BASE_URL from "../backbone/Constant";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Location from 'expo-location';
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Location from "expo-location";
+import { getServerIP } from "../backbone/ApiConfig";
 
 const screenWidth = Dimensions.get("window").width;
 const itemWidth = (screenWidth - 40) / 4;
 
 const menuItems = [
-  { titleKey: "menu_attendance", icon: "home", iconType: "MaterialIcons", color: "#BFD7FF" },
-  { titleKey: "menu_leave", icon: "calendar-today", iconType: "MaterialIcons", color: "#F5C6C6" },
-  { titleKey: "menu_idl", icon: "airplane-ticket", iconType: "MaterialIcons", color: "#DCC6F5" },
-  { titleKey: "menu_activity", icon: "access-time", iconType: "MaterialIcons", color: "#F5D2B3" },
-  { titleKey: "menu_guarantee", icon: "location-city", iconType: "MaterialIcons", color: "#C9E6C1" },
-  { titleKey: "menu_overtime", icon: "account-balance-wallet", iconType: "MaterialIcons", color: "#E8D4AE" },
-  { titleKey: "menu_reimburse", icon: "credit-card", iconType: "FontAwesome", color: "#C9E6E3" },
-  { titleKey: "menu_pusaka", icon: "bar-chart", iconType: "FontAwesome", color: "#C7DBF7" },
-  { titleKey: "menu_imp", icon: "directions-walk", iconType: "MaterialIcons", color: "#FBE59D" },
-  { titleKey: "menu_request", icon: "local-cafe", iconType: "MaterialIcons", color: "#B4F1EE" },
+  {
+    titleKey: "menu_attendance",
+    icon: "home",
+    iconType: "MaterialIcons",
+    color: "#BFD7FF",
+  },
+  {
+    titleKey: "menu_leave",
+    icon: "calendar-today",
+    iconType: "MaterialIcons",
+    color: "#F5C6C6",
+  },
+  {
+    titleKey: "menu_idl",
+    icon: "airplane-ticket",
+    iconType: "MaterialIcons",
+    color: "#DCC6F5",
+  },
+  {
+    titleKey: "menu_activity",
+    icon: "access-time",
+    iconType: "MaterialIcons",
+    color: "#F5D2B3",
+  },
+  {
+    titleKey: "menu_guarantee",
+    icon: "location-city",
+    iconType: "MaterialIcons",
+    color: "#C9E6C1",
+  },
+  {
+    titleKey: "menu_overtime",
+    icon: "account-balance-wallet",
+    iconType: "MaterialIcons",
+    color: "#E8D4AE",
+  },
+  {
+    titleKey: "menu_reimburse",
+    icon: "credit-card",
+    iconType: "FontAwesome",
+    color: "#C9E6E3",
+  },
+  {
+    titleKey: "menu_pusaka",
+    icon: "bar-chart",
+    iconType: "FontAwesome",
+    color: "#C7DBF7",
+  },
+  {
+    titleKey: "menu_imp",
+    icon: "directions-walk",
+    iconType: "MaterialIcons",
+    color: "#FBE59D",
+  },
+  {
+    titleKey: "menu_request",
+    icon: "local-cafe",
+    iconType: "MaterialIcons",
+    color: "#B4F1EE",
+  },
 ];
 
 export default function HomeScreen() {
   const navigation = useNavigation();
-  const { user } = useContext(AuthContext);
+  const { user, setUser } = useContext(AuthContext);
   const [jamMasuk, setJamMasuk] = useState("-");
   const [jamKeluar, setJamKeluar] = useState("-");
   const [serverConnected, setServerConnected] = useState(true);
   const [gpsConnected, setGpsConnected] = useState(true);
+  const [imageUrl, setImageUrl] = useState(null);
 
+  useEffect(() => {
+    const buildImageUrl = async () => {
+      if (user?.fotoKaryawan) {
+        const ip = await getServerIP();
+        const fullUrl = `http://${ip}:8080/karyawan/lampiran/${encodeURIComponent(
+          user.fotoKaryawan
+        )}?t=${Date.now()}`;
+        setImageUrl(fullUrl);
+      }
+    };
+    buildImageUrl();
+  }, [user]);
+  console.log(" image", imageUrl);
 
   const getData = async (key) => {
     try {
       const jsonValue = await AsyncStorage.getItem(key);
       if (jsonValue !== null) {
-        return JSON.parse(jsonValue); // Kalo disimpan dalam bentuk JSON
+        return JSON.parse(jsonValue);
       }
       return null;
     } catch (e) {
@@ -63,7 +128,7 @@ export default function HomeScreen() {
   const loadCurrentHadir = async () => {
     try {
       const current = await getData("lastLogin");
-      const response = await fetch(BASE_URL+"kehadiran/currenthadir", {
+      const response = await fetch(BASE_URL + "kehadiran/currenthadir", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -79,11 +144,13 @@ export default function HomeScreen() {
         const masuk = result.data.masukAbsen;
         const keluar = result.data.keluarAbsen;
 
-        // Format jam ke HH:mm atau "-" kalo null
         const formatJam = (datetime) => {
           if (!datetime) return "-";
           const jam = new Date(datetime).getHours().toString().padStart(2, "0");
-          const menit = new Date(datetime).getMinutes().toString().padStart(2, "0");
+          const menit = new Date(datetime)
+            .getMinutes()
+            .toString()
+            .padStart(2, "0");
           return `${jam}:${menit}`;
         };
 
@@ -105,21 +172,18 @@ export default function HomeScreen() {
   useEffect(() => {
     loadCurrentHadir();
 
-    // ⏱️ Cek koneksi server tiap 5 detik
     const interval = setInterval(() => {
       fetch(BASE_URL + "service/shoot")
         .then((res) => {
-          // console.log(res.ok);
           setServerConnected(res.ok);
         })
         .catch(() => setServerConnected(false));
     }, 5000);
 
-    // 🛰️ Pantau GPS real-time pakai expo-location
     const startWatchingLocation = async () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') {
+        if (status !== "granted") {
           console.log("❌ Izin lokasi ditolak");
           setGpsConnected(false);
           return;
@@ -128,12 +192,24 @@ export default function HomeScreen() {
         locationSubscription = await Location.watchPositionAsync(
           {
             accuracy: Location.Accuracy.High,
-            timeInterval: 5000,        // update tiap 5 detik
-            distanceInterval: 10,      // atau pindah 10 meter
+            timeInterval: 5000,
+            distanceInterval: 10,
           },
           (location) => {
             console.log("📡 Lokasi Update:", location);
             setGpsConnected(true);
+            if (!user.alamat) {
+              const updatedUser = {
+                ...user,
+                alamat: {
+                  alamat: "Belum ada",
+                  latitude: location.coords.latitude,
+                  longitude: location.coords.longitude,
+                  timestamp: new Date().toISOString(),
+                },
+              };
+              setUser(updatedUser);
+            }
           },
           (error) => {
             console.log("❌ Gagal update lokasi:", error?.message || error);
@@ -146,10 +222,8 @@ export default function HomeScreen() {
       }
     };
 
-
     startWatchingLocation();
 
-    // 🧹 Cleanup
     return () => {
       clearInterval(interval);
       if (locationSubscription) {
@@ -164,12 +238,21 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <View style={styles.leftSection}>
-              <MaterialIcons
-                name="account-circle"
-                size={50}
-                color="#1E3668"
-                style={{ marginRight: 5 }}
-              />
+              {imageUrl ? (
+                <Image
+                  source={{ uri: imageUrl }}
+                  style={styles.avatar}
+                  resizeMode="cover"
+                />
+              ) : (
+                <MaterialIcons
+                  name="account-circle"
+                  size={50}
+                  color="#1E3668"
+                  style={{ marginRight: 5 }}
+                />
+              )}
+
               <View style={styles.headerText}>
                 <Text style={styles.welcomeText}>{i18n.t("welcome_back")}</Text>
                 <Text style={styles.userName}>
@@ -177,32 +260,51 @@ export default function HomeScreen() {
                 </Text>
               </View>
             </View>
-            <TouchableOpacity   onPress={() => navigation.navigate("Notification")}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("Notification")}
+            >
               <MaterialIcons name="notifications" size={28} color="#1E3668" />
             </TouchableOpacity>
           </View>
 
           <View style={styles.statusRow}>
-            <View style={[
-              styles.statusTag,
-              { backgroundColor: serverConnected ? "#E3F6DC" : "#FFEBEE" }, 
-            ]}>
-              <Text  style={[
+            <View
+              style={[
+                styles.statusTag,
+                { backgroundColor: serverConnected ? "#E3F6DC" : "#FFEBEE" },
+              ]}
+            >
+              <Text
+                style={[
                   styles.statusText,
                   { color: serverConnected ? "#388E3C" : "#D32F2F" },
-                ]}>
-                {serverConnected ? "📶 Server Terhubung" : "❌ Server Terputus"}
+                ]}
+              >
+                {i18n.t(
+                  serverConnected
+                    ? "status.serverConnected"
+                    : "status.serverDisconnected"
+                )}
               </Text>
             </View>
-            <View  style={[
+
+            <View
+              style={[
                 styles.statusTag,
                 { backgroundColor: gpsConnected ? "#E3F6DC" : "#FFEBEE" },
-              ]}>
-              <Text style={[
+              ]}
+            >
+              <Text
+                style={[
                   styles.statusText,
-                  { color: gpsConnected ? "#388E3C" : "#D32F2F" }, 
-                ]}>
-                {gpsConnected ? "🛰️ GPS Terhubung" : "📴 GPS Tidak Aktif"}
+                  { color: gpsConnected ? "#388E3C" : "#D32F2F" },
+                ]}
+              >
+                {i18n.t(
+                  gpsConnected
+                    ? "status.gpsConnected"
+                    : "status.gpsDisconnected"
+                )}
               </Text>
             </View>
           </View>
@@ -228,7 +330,7 @@ export default function HomeScreen() {
           <View style={styles.timeRow}>
             <View style={styles.timeItem}>
               <Text style={styles.timeText}>{jamMasuk}</Text>
-                            <Text style={styles.timeLabel}>{i18n.t("entry")}</Text>
+              <Text style={styles.timeLabel}>{i18n.t("entry")}</Text>
             </View>
 
             <Text style={styles.arrow}>→</Text>
@@ -252,31 +354,36 @@ export default function HomeScreen() {
             const title = i18n.t(item.titleKey);
 
             const handlePress = () => {
-              if (item.titleKey === "menu_reimburse") {
-                navigation.navigate(
-                  user?.jabatan === "Atasan"
-                    ? "ReimbursementAtasan"
-                    : "ReimbursementKaryawan"
-                );
-                return;
+              switch (item.titleKey) {
+                case "menu_attendance":
+                  navigation.navigate("Kehadiran", { user });
+                  break;
+                case "menu_leave":
+                  navigation.navigate(
+                    user?.kry_jabatan === "Atasan" ? "CutiAtasan" : "Cuti",
+                    { user }
+                  );
+                  break;
+                case "menu_idl":
+                  navigation.navigate("IDL");
+                  break;
+                case "menu_imp":
+                  navigation.navigate("IMP");
+                  break;
+                case "menu_request":
+                  navigation.navigate("PermintaanBerkas");
+                  break;
+                case "menu_reimburse":
+                  navigation.navigate(
+                    user?.jabatan === "Atasan"
+                      ? "ReimbursementAtasan"
+                      : "ReimbursementKaryawan"
+                  );
+                  break;
+                default:
+                  console.log("⚠️ Navigasi belum diatur untuk:", item.titleKey);
+                  break;
               }
-              if(item.title === "Kehadiran"){
-                navigation.navigate("Kehadiran", {user: user})
-              }
-              if (item.title === "Cuti") {
-              navigation.navigate("Cuti", { user: user });
-              }
-              if (item.titleKey === "menu_leave") {
-                navigation.navigate(
-                  user?.kry_jabatan === "Atasan" ? "CutiAtasan" : "Cuti",
-                  { user }
-                );
-                return;
-              }
-              if (item.titleKey === "menu_idl") navigation.navigate("IDL");
-              if (item.titleKey === "menu_imp") navigation.navigate("IMP");
-              if (item.titleKey === "menu_request")
-                navigation.navigate("PermintaanBerkas");
             };
 
             return (
@@ -308,8 +415,17 @@ const styles = StyleSheet.create({
   },
   leftSection: { flexDirection: "row", alignItems: "center" },
   headerText: { flexDirection: "column" },
-  welcomeText: { fontSize: 14, color: "#555" },
-  userName: { fontSize: 18, fontWeight: "bold", color: "#1E3668" },
+  welcomeText: {
+    fontSize: 14,
+    color: "#555",
+    fontFamily: "Poppins_400Regular",
+  },
+  userName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1E3668",
+    fontFamily: "Poppins_600SemiBold",
+  },
   statusRow: { flexDirection: "row", gap: 2, paddingLeft: 10 },
   statusTag: {
     backgroundColor: "#E3F6DC",
@@ -318,7 +434,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginRight: 10,
   },
-  statusText: { fontSize: 12, color: "#388E3C" },
+  statusText: {
+    fontSize: 12,
+    color: "#388E3C",
+    fontFamily: "Poppins_500Medium",
+  },
   attendanceCard: {
     backgroundColor: "#1E3668",
     borderRadius: 20,
@@ -337,18 +457,31 @@ const styles = StyleSheet.create({
   attendanceTitle: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: "Poppins_600SemiBold",
     marginLeft: 8,
   },
-  attendanceDate: { color: "#fff", fontSize: 14 },
+  attendanceDate: {
+    color: "#fff",
+    fontSize: 14,
+    fontFamily: "Poppins_400Regular",
+  },
   timeRow: {
     flexDirection: "row",
     justifyContent: "space-evenly",
     alignItems: "center",
   },
   timeItem: { alignItems: "center" },
-  timeText: { fontSize: 36, fontWeight: "bold", color: "#fff" },
-  timeLabel: { marginTop: 4, fontSize: 14, color: "#bfc6d6" },
+  timeText: {
+    fontSize: 36,
+    color: "#fff",
+    fontFamily: "Poppins_700Bold",
+  },
+  timeLabel: {
+    marginTop: 4,
+    fontSize: 14,
+    color: "#bfc6d6",
+    fontFamily: "Poppins_400Regular",
+  },
   arrow: { fontSize: 28, color: "#fff", marginHorizontal: 10 },
   grid: {
     flexDirection: "row",
@@ -364,5 +497,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  menuText: { fontSize: 12, textAlign: "center" },
+  menuText: {
+    fontSize: 12,
+    textAlign: "center",
+    fontFamily: "Poppins_400Regular",
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 5,
+    backgroundColor: "#ccc",
+    borderColor: "#1E3668",
+    borderWidth: 2,
+  },
 });

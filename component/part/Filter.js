@@ -8,6 +8,7 @@ import {
   Modal,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import i18n from "../backbone/i18n";
 
 const FilterTahun = ({ visible, onClose, selectedYear, onSelectYear }) => {
   const currentYear = new Date().getFullYear();
@@ -34,7 +35,7 @@ const FilterTahun = ({ visible, onClose, selectedYear, onSelectYear }) => {
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.title}>Pilih Tahun</Text>
+          <Text style={styles.title}>{i18n.t("select_year")}</Text>
             <TouchableOpacity onPress={onClose}>
               <MaterialIcons name="close" size={24} color="#1E2D56" />
             </TouchableOpacity>

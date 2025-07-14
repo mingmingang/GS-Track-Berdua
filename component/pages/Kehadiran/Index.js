@@ -31,7 +31,6 @@ const KehadiranScreen = ({ route }) => {
     }
   };
 
-
   const getStatusFromIndikator = (indikator) => {
   switch (indikator) {
     case 1: return "Hadir";
@@ -97,8 +96,6 @@ const KehadiranScreen = ({ route }) => {
   };
 
   const [selectedStatus, setSelectedStatus] = useState("Semua");
-
-   // Dummy data (replace with API call)
     useEffect(() => {
     const fetchKehadiranList = async () => {
       try {

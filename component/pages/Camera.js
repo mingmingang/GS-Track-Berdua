@@ -43,10 +43,6 @@ export default function CameraScreen({ navigation, mode = "checkin", onSuccess }
   }
 
   const takePhoto = async () => {
-    // if (!hasPermission) {
-    //   Alert.alert("Izin kamera belum diberikan");
-    //   return;
-    // }
 
     if (cameraRef.current) {
       try {

@@ -24,6 +24,8 @@ import {
   pickFileFromDocument,
 } from "../../../backbone/api";
 import i18n from "../../../backbone/i18n";
+import * as Notifications from "expo-notifications";
+import * as Device from "expo-device";
 
 const TambahCutiScreen = () => {
   const navigation = useNavigation();
@@ -318,6 +320,10 @@ const TambahCutiScreen = () => {
           text1: "Berhasil",
           text2: "Pengajuan cuti berhasil disimpan.",
         });
+        console.log("Before showLocalNotification()");
+        await showLocalNotification();
+        console.log("After showLocalNotification()");
+
         navigation.goBack();
       } else {
         console.error("Gagal:", result);
@@ -332,6 +338,27 @@ const TambahCutiScreen = () => {
       alert("Terjadi kesalahan saat mengajukan cuti.");
     }
   };
+
+  useEffect(() => {
+    const requestPermissions = async () => {
+      if (Device.isDevice) {
+        const { status: existingStatus } =
+          await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
+        if (existingStatus !== "granted") {
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
+        }
+        if (finalStatus !== "granted") {
+          alert("Izin notifikasi tidak diberikan.");
+        }
+      } else {
+        alert("Notifikasi hanya tersedia di perangkat fisik.");
+      }
+    };
+
+    requestPermissions();
+  }, []);
 
   const handlePickFile = async (source) => {
     try {
@@ -354,6 +381,17 @@ const TambahCutiScreen = () => {
     } catch (error) {
       alert("Gagal memilih file.");
     }
+  };
+
+  const showLocalNotification = async () => {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Pengajuan Cuti Berhasil ✅",
+        body: "Permohonan cuti kamu berhasil diajukan dan menunggu persetujuan.",
+        sound: "default",
+      },
+      trigger: null,
+    });
   };
 
   return (
@@ -579,10 +617,9 @@ const TambahCutiScreen = () => {
 
             {fileName && (
               <View style={{ marginTop: 12 }}>
-              <Text style={{ fontFamily: "Poppins_500Medium" }}>
-  {i18n.t("tambahCuti.fileTerpilih")}: {fileName}
-</Text>
-
+                <Text style={{ fontFamily: "Poppins_500Medium" }}>
+                  {i18n.t("tambahCuti.fileTerpilih")}: {fileName}
+                </Text>
 
                 {fileUri &&
                   (fileName.endsWith(".jpg") ||
@@ -615,7 +652,9 @@ const TambahCutiScreen = () => {
                     }}
                   >
                     <Ionicons name="document-text" size={48} color="#e74c3c" />
-                   <Text style={{ marginTop: 8 }}>{i18n.t("tambahCuti.previewPDF")}</Text>
+                    <Text style={{ marginTop: 8 }}>
+                      {i18n.t("tambahCuti.previewPDF")}
+                    </Text>
                   </View>
                 )}
 
@@ -632,7 +671,9 @@ const TambahCutiScreen = () => {
                     }}
                   >
                     <Ionicons name="folder" size={48} color="#f39c12" />
-                   <Text style={{ marginTop: 8 }}>{i18n.t("tambahCuti.previewZIP")}</Text>
+                    <Text style={{ marginTop: 8 }}>
+                      {i18n.t("tambahCuti.previewZIP")}
+                    </Text>
                   </View>
                 )}
               </View>

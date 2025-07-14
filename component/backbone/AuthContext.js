@@ -1,5 +1,5 @@
-import React, { createContext, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useState, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -7,14 +7,24 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const login = async (userData) => {
-    setUser(userData); 
-    await AsyncStorage.setItem('user', JSON.stringify(userData));
+    const parsedAlamat =
+      typeof userData.alamat === "string"
+        ? JSON.parse(userData.alamat)
+        : userData.alamat;
+
+    const updatedUserData = {
+      ...userData,
+      alamat: parsedAlamat,
+    };
+
+    setUser(updatedUserData);
+    await AsyncStorage.setItem("user", JSON.stringify(updatedUserData));
   };
 
   const logout = async () => {
     try {
-      await AsyncStorage.removeItem('user');
-      setUser(null); 
+      await AsyncStorage.removeItem("user");
+      setUser(null);
     } catch (e) {
       console.error("Gagal melakukan logout:", e);
     }
@@ -22,14 +32,14 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuthStatus = async () => {
     try {
-      const storedUser = await AsyncStorage.getItem('user');
+      const storedUser = await AsyncStorage.getItem("user");
       if (storedUser) {
         setUser(JSON.parse(storedUser));
       }
     } catch (e) {
       console.error("Gagal memuat sesi user:", e);
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -38,8 +48,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-   <AuthContext.Provider value={{ user, isLoading, login, logout, setUser }}>
-
+    <AuthContext.Provider value={{ user, isLoading, login, logout, setUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -14,8 +14,7 @@ import Toast from "react-native-toast-message";
 import { AuthContext } from "../backbone/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getServerIP } from "../backbone/ApiConfig";
-import i18n from "../backbone/i18n"; // ✅ import i18n
-import BASE_URL from "../backbone/Constant";
+import i18n from "../backbone/i18n"; 
 
 const Login = ({ navigation }) => {
   const { login } = useContext(AuthContext);
@@ -39,7 +38,8 @@ const Login = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch(BASE_URL + "karyawan/login", {
+      const ip = await getServerIP();
+      const response = await fetch(`http://${ip}:8080/karyawan/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -61,6 +61,8 @@ const Login = ({ navigation }) => {
 
       if (result.result === 200) {
         await login(result.data);
+
+        console.log("data abis log", result.data);
 
         Toast.show({
           type: "success",
@@ -168,6 +170,7 @@ const Login = ({ navigation }) => {
 
 export default Login;
 
+// Styles tidak perlu diubah
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -7,6 +7,7 @@ import {
   ScrollView,
   Alert,
   Image,
+  SafeAreaView
 } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -43,6 +44,7 @@ const EditProfile = () => {
     departemen: user?.departemen || "",
     tanggalLahir: user?.tanggalLahir || "",
     fotoKaryawan: user?.fotoKaryawan || "",
+    alamat: user?.alamat || "",
     fileUri: "",
     fileName: "",
   });
@@ -60,6 +62,8 @@ const EditProfile = () => {
 
     buildImageUrl();
   }, [user?.fotoKaryawan]);
+
+  
 
   const [openPlant, setOpenPlant] = useState(false);
   const [itemsPlant, setItemsPlant] = useState([
@@ -96,26 +100,24 @@ const EditProfile = () => {
   useEffect(() => {
     if (user) {
       const rawPhone = user.noHandphone || "";
-
-      // Jika nomor dimulai dengan +62 atau 62, ganti jadi 0 di depan
       const localPhone = rawPhone.replace(/^(\+62|62)/, "0");
 
       setFormData({
         npk: user.npk || "",
         namaKaryawan: user.namaKaryawan || "",
         email: user.email || "",
-        noHandphone: localPhone, // tanpa kode negara
+        noHandphone: localPhone,
         plant: user.plant || "",
         departemen: user.departemen || "",
         tanggalLahir: user.tanggalLahir || "",
         fotoKaryawan: user.fotoKaryawan || "",
+        alamat: user.alamat || "",
         fileUri: "",
         fileName: "",
       });
     }
   }, [user]);
 
-  console.log("data", formData);
 
   const handleChange = (key, value) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
@@ -227,7 +229,8 @@ const EditProfile = () => {
   return (
     <View style={styles.container}>
       <Header title={i18n.t("edit_profile")} />
-      <ScrollView contentContainerStyle={styles.form}>
+       <SafeAreaView style={styles.container}>
+      <ScrollView   contentContainerStyle={[styles.form, { flexGrow: 1 }]}>
         <View style={styles.headerSection}>
           <View style={styles.profileWrapper}>
             {formData.fotoKaryawan ? (
@@ -323,8 +326,32 @@ const EditProfile = () => {
           locale="id-ID"
           themeVariant="light"
         />
-      </ScrollView>
 
+        <Text style={styles.label}>Alamat</Text>
+
+        <TouchableOpacity
+          style={styles.input}
+          onPress={() =>
+            navigation.navigate("AlamatAdd", {
+              onSelect: (alamatDipilih) => {
+                handleChange("alamat", alamatDipilih);
+              },
+            })
+          }
+        >
+          <Text style={{ color: "#007bff", fontWeight: "bold" }}>
+            Ubah Alamat
+          </Text>
+        </TouchableOpacity>
+
+        <Text style={{ marginTop: 8, fontSize: 14, color: "#444" }}>
+          Alamat Anda saat ini:
+        </Text>
+        <Text style={{ marginBottom: 12, color: "#000" }}>
+          {formData.alamat.alamat || "Belum ada alamat yang dipilih"}
+        </Text>
+      </ScrollView>
+      </SafeAreaView>
       <View style={styles.fixedButtonContainer}>
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
           <Ionicons name="save" color="#fff" style={{ marginRight: 8 }} />

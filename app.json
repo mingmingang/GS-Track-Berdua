@@ -8,9 +8,17 @@
           "cameraPermission": "The app accesses your camera to let you take photos."
         }
       ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#000000"
+        }
+      ],
       "expo-web-browser",
       "expo-localization"
     ],
+
     "name": "GS-Track-Berdua",
     "slug": "GS-Track-Berdua",
     "version": "1.0.0",
@@ -24,13 +32,18 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSUserTrackingUsageDescription": "Aplikasi membutuhkan izin untuk menampilkan notifikasi.",
+        "UIBackgroundModes": ["remote-notification", "fetch"]
+      },
+
+      "config": {
+        "googleMapsApiKey": "AIzaSyCT7-70Kff7AsV0on-oNgaZiHv3HU74--g"
+      }
     },
     "android": {
-      "permissions": [
-        "CAMERA",
-        "ACCESS_FINE_LOCATION"
-      ],
+      "permissions": ["CAMERA", "ACCESS_FINE_LOCATION"],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"

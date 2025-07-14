@@ -17,6 +17,7 @@ import TambahIMPScreen from "./component/pages/IMP/karyawan/Tambah";
 import FilterIMPScreen from "./component/pages/IMP/karyawan/Filter";
 import DetailIMPScreen from "./component/pages/IMP/karyawan/Lihat";
 import KehadiranScreen from "./component/pages/Kehadiran/Index";
+import NotificationScreen from "./component/pages/Notifications";
 import CameraScreen from "./component/pages/Camera";
 import * as SplashScreen from "expo-splash-screen";
 import {
@@ -34,7 +35,20 @@ import { AuthProvider } from "./component/backbone/AuthContext";
 import Profile from "./component/pages/Profile/Profile";
 import ForgotPassword from "./component/pages/ForgotPassword";
 import './i18n';
+import * as Notifications from "expo-notifications";
+import * as Device from "expo-device";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 const Stack = createNativeStackNavigator();
+
+const getData = async (key) => {
+        try {
+            const jsonValue = await AsyncStorage.getItem(key);
+            return jsonValue != null ? JSON.parse(jsonValue) : null;
+        } catch (e) {
+            console.error("❌ Gagal ambil data:", e);
+            return null;
+        }
+    };
 
 
 SplashScreen.preventAutoHideAsync();
@@ -47,14 +61,54 @@ export default function App() {
     Poppins_700Bold,
   });
 
+  const fetchNotifications = async () => {
+    const user = await getData("lastLogin");
+
+    registerForPushNotificationAsync().then(token => {
+      console.log("📱 Token:", token);
+
+      fetch(`${BASE_URL}token/register-token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          idKaryawan: user.username, // atau ID karyawan
+          token: token,
+        }),
+      });
+    });
+  }
+
   useEffect(() => {
     async function prepare() {
       if (fontsLoaded) {
         await SplashScreen.hideAsync();
+        fetchNotifications();
       }
     }
     prepare();
   }, [fontsLoaded]);
+
+  async function registerForPushNotificationAsync()
+  {
+    let token;
+    if(Device.isDevice){
+      const {status: existingStatus} = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if(finalStatus !== "granted")
+      {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== "granted") {
+        alert("Izin notifikasi ditolak!");
+        return;
+      }
+      token = (await Notifications.getExpoPushTokenAsync()).data;
+    }else{
+      alert("Jalanin di HP asli ya bro!");
+    }
+    return token;
+  }
 
   if (!fontsLoaded) {
     return null;
@@ -83,6 +137,11 @@ export default function App() {
             <Stack.Screen
               name="Kalender"
               component={KalenderScreen}
+              options={{ animation: "fade", headerShown: false }}
+            />
+            <Stack.Screen
+              name="Notification"
+              component={NotificationScreen}
               options={{ animation: "fade", headerShown: false }}
             />
             <Stack.Screen

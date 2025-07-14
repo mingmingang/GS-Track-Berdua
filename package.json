@@ -19,10 +19,16 @@
     "@react-navigation/native": "^7.1.11",
     "@react-navigation/native-stack": "^7.3.16",
     "expo": "~53.0.11",
+    "expo-camera": "~16.1.10",
+    "expo-constants": "~17.1.7",
+    "expo-dev-client": "~5.2.4",
+    "expo-device": "~7.1.4",
     "expo-document-picker": "~13.1.5",
     "expo-file-system": "~18.1.10",
     "expo-font": "~13.3.1",
+    "expo-localization": "^16.1.6",
     "expo-location": "~18.1.6",
+    "expo-notifications": "~0.31.4",
     "expo-splash-screen": "~0.30.9",
     "expo-status-bar": "~2.2.3",
     "i18next": "^25.3.0",
@@ -31,7 +37,6 @@
     "react-native": "0.79.3",
     "react-native-calendars": "^1.1313.0",
     "react-native-date-picker": "^5.0.13",
-    "react-native-document-picker": "^9.3.1",
     "react-native-dropdown-picker": "^5.4.6",
     "react-native-geolocation-service": "^5.3.1",
     "react-native-gesture-handler": "~2.24.0",
@@ -41,8 +46,7 @@
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
-    "react-native-toast-message": "^2.3.2",
-    "expo-camera": "~16.1.10"
+    "react-native-toast-message": "^2.3.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

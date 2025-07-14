@@ -299,12 +299,6 @@ export default function KalenderScreen() {
                     const now = new Date();
                     const jam = now.getHours();
                     const menit = now.getMinutes();
-
-                    if (jam < 16) {
-                        Alert.alert("Belum waktunya!", "Check-out hanya bisa dilakukan setelah jam 16:00.");
-                        return;
-                    }
-
                     // Cek status absen dari API
                     const response = await fetch(`${BASE_URL}kehadiran/currenthadir`, {
                         method: "POST",
@@ -335,6 +329,16 @@ export default function KalenderScreen() {
 
                     if (keluarAbsen !== null) {
                         Alert.alert("Info", "Anda sudah melakukan check-out.");
+                        return;
+                    }
+
+                    if (keluarAbsen === null && jam < 16) {
+                        Alert.alert("Belum waktunya!", "Check-out hanya bisa dilakukan setelah jam 16:00.");
+                        return;
+                    }
+
+                    if(keluarAbsen !== null && jam > 16){
+                        Alert.alert("Info", "Mo");
                         return;
                     }
 

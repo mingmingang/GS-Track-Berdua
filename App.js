@@ -35,22 +35,7 @@ import { AuthProvider } from "./component/backbone/AuthContext";
 import Profile from "./component/pages/Profile/Profile";
 import ForgotPassword from "./component/pages/ForgotPassword";
 import './i18n';
-import * as Notifications from "expo-notifications";
-import * as Device from "expo-device";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import BASE_URL from "./component/backbone/Constant";
 const Stack = createNativeStackNavigator();
-
-const getData = async (key) => {
-        try {
-            const jsonValue = await AsyncStorage.getItem(key);
-            return jsonValue != null ? JSON.parse(jsonValue) : null;
-        } catch (e) {
-            console.error("❌ Gagal ambil data:", e);
-            return null;
-        }
-    };
-
 
 SplashScreen.preventAutoHideAsync();
 
@@ -62,65 +47,17 @@ export default function App() {
     Poppins_700Bold,
   });
 
-  const fetchNotifications = async () => {
-    const user = await getData("lastLogin");
-
-    try {
-      const token = await registerForPushNotificationAsync();
-
-      if (token) {
-        console.log("📱 Token dapet:", token);
-
-        const res = await fetch(`${BASE_URL}token/register-token`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            idKaryawan: user.username, // atau ID karyawan
-            token: token,
-          }),
-        });
-
-        const result = await res.json();
-        console.log("📬 Respon server:", result);
-      }
-    } catch (err) {
-      console.error("❌ Gagal register push notification:", err);
-    }
-  };
+ 
 
   useEffect(() => {
     async function prepare() {
       if (fontsLoaded) {
         await SplashScreen.hideAsync();
-        fetchNotifications(); // panggil setelah font ready
       }
     }
     prepare();
   }, [fontsLoaded]);
 
-  async function registerForPushNotificationAsync() {
-    let token;
-    if (Device.isDevice) {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-
-      if (finalStatus !== "granted") {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-
-      if (finalStatus !== "granted") {
-        alert("❌ Izin notifikasi ditolak!");
-        return null;
-      }
-
-      token = (await Notifications.getExpoPushTokenAsync()).data;
-    } else {
-      alert("📵 Jalankan di HP asli ya bro!");
-    }
-
-    return token;
-  }
 
 
   if (!fontsLoaded) {

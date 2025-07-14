@@ -59,227 +59,18 @@ import { initLanguage } from "./component/backbone/i18n";
 import OnboardingScreen from "./component/pages/OnBoarding";
 import NotificationScreen from "./component/pages/Notification";
 import KehadiranScreen from "./component/pages/Kehadiran/Index";
+import NotificationScreen from "./component/pages/Notifications";
 import CameraScreen from "./component/pages/Camera";
 import KalenderScreen from "./component/pages/Kalender";
 import DokumenFolderScreen from "./component/pages/Dokumen/Index";
 import AlamatAdd from "./component/pages/Profile/AlamatAdd";
 
 const Stack = createNativeStackNavigator();
+
+
 SplashScreen.preventAutoHideAsync();
 
-// 1. Tumpukan layar untuk pengguna yang BELUM LOGIN
-const AuthStack = () => (
-  <Stack.Navigator initialRouteName="Splash">
-    <Stack.Screen
-      name="Splash"
-      component={Splash}
-      options={{ animation: "fade", headerShown: false }}
-    />
-    <Stack.Screen
-      name="Onboarding"
-      component={OnboardingScreen}
-      options={{ animation: "fade", headerShown: false }}
-    />
-    <Stack.Screen
-      name="Login"
-      component={Login}
-      options={{ animation: "fade", headerShown: false }}
-    />
-    <Stack.Screen
-      name="ForgotPassword"
-      component={ForgotPassword}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-  </Stack.Navigator>
-);
-
-const AppStack = () => (
-  <Stack.Navigator initialRouteName="Home">
-    <Stack.Screen
-      name="Home"
-      component={Home}
-      options={{ animation: "fade", headerShown: false }}
-    />
-    <Stack.Screen
-      name="Kehadiran"
-      component={KehadiranScreen}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-    <Stack.Screen
-      name="Kalender"
-      component={KalenderScreen}
-      options={{ animation: "fade", headerShown: false }}
-    />
-    <Stack.Screen
-      name="Dokumen"
-      component={DokumenFolderScreen}
-      options={{ animation: "fade", headerShown: false }}
-    />
-    <Stack.Screen name="Checkin" options={{ headerShown: false }}>
-      {(props) => (
-        <CameraScreen
-          {...props}
-          mode="checkin"
-          onSuccess={() => {
-            console.log("✅ Berhasil checkin");
-            navigation.navigate("Kalender");
-          }}
-        />
-      )}
-    </Stack.Screen>
-    <Stack.Screen name="Checkout" options={{ headerShown: false }}>
-      {(props) => (
-        <CameraScreen
-          {...props}
-          mode="checkout"
-          onSuccess={() => {
-            console.log("✅ Berhasil checkout");
-            navigation.navigate("Kalender");
-          }}
-        />
-      )}
-    </Stack.Screen>
-    
-    <Stack.Screen
-      name="AlamatAdd"
-      component={AlamatAdd}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-
-    <Stack.Screen
-      name="Notification"
-      component={NotificationScreen}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-
-    <Stack.Screen
-      name="Profile"
-      component={Profile}
-      options={{ animation: "fade", headerShown: false }}
-    />
-    <Stack.Screen
-      name="ChangePassword"
-      component={ChangePassword}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-    <Stack.Screen
-      name="EditProfile"
-      component={EditProfile}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-    <Stack.Screen
-      name="FAQs"
-      component={FaqScreen}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-    <Stack.Screen
-      name="UbahBahasa"
-      component={LanguageScreen}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-    {/* Pindahkan semua layar lain ke sini */}
-    <Stack.Screen
-      name="Cuti"
-      component={CutiScreen}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-    <Stack.Screen
-      name="TambahCuti"
-      component={TambahCutiScreen}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-    <Stack.Screen
-      name="PembatalanCuti"
-      component={PembatalanCutiScreen}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-    <Stack.Screen
-      name="LihatCuti"
-      component={DetailCutiScreen}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-    <Stack.Screen
-      name="IDL"
-      component={IDLScreen}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-    <Stack.Screen
-      name="TambahIDL"
-      component={TambahIDLScreen}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-    <Stack.Screen
-      name="FilterIDL"
-      component={FilterIDLScreen}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-    <Stack.Screen
-      name="LihatIDL"
-      component={DetailIDLScreen}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-    <Stack.Screen
-      name="IMP"
-      component={IMPScreen}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-    <Stack.Screen
-      name="TambahIMP"
-      component={TambahIMPScreen}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-    <Stack.Screen
-      name="FilterIMP"
-      component={FilterIMPScreen}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-    <Stack.Screen
-      name="LihatIMP"
-      component={DetailIMPScreen}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-
-    {/* Navigasi Menu Reimbursement Obat Karyawan */}
-    <Stack.Screen
-      name="ReimbursementKaryawan"
-      component={ReimbursementScreen}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-    <Stack.Screen
-      name="TambahReimbursement"
-      component={TambahReimbursementScreen}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-    <Stack.Screen
-      name="PembatalanReimbursement"
-      component={PembatalanReimbursementScreen}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-    <Stack.Screen
-      name="LihatReimbursement"
-      component={DetailReimbursementScreen}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-
-    {/* Navigasi Menu Reimbursement Obat Atasan */}
-    <Stack.Screen
-      name="ReimbursementAtasan"
-      component={ReimbursementScreenAtasan}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-    <Stack.Screen
-      name="LihatReimbursementAtasan"
-      component={LihatReimbursementAtasan}
-      options={{ animation: "slide_from_right", headerShown: false }}
-    />
-  </Stack.Navigator>
-);
-
-// 3. Komponen utama yang memilih stack mana yang akan ditampilkan
-const RootNavigator = () => {
-  const { user, isLoading } = useContext(AuthContext);
-  const { language } = useContext(LanguageContext); // 🟢 Tambahkan ini
-
+export default function App() {
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
@@ -288,37 +79,117 @@ const RootNavigator = () => {
   });
 
   useEffect(() => {
-    const prepareApp = async () => {
-      await initLanguage();
-    };
-    prepareApp();
-  }, []);
-
-  useEffect(() => {
-    if (fontsLoaded && !isLoading) {
-      SplashScreen.hideAsync();
+    async function prepare() {
+      if (fontsLoaded) {
+        await SplashScreen.hideAsync();
+      }
     }
-  }, [fontsLoaded, isLoading]);
+    prepare();
+  }, [fontsLoaded]);
 
-  if (!fontsLoaded || isLoading) {
+  if (!fontsLoaded) {
     return null;
   }
 
   return (
-    <NavigationContainer>
-      {user ? <AppStack /> : <AuthStack />}
-    </NavigationContainer>
-  );
-};
-
-// 4. Komponen App utama yang sekarang lebih bersih
-export default function App() {
-  return (
     <>
       <AuthProvider>
-        <LanguageProvider>
-          <RootNavigator />
-        </LanguageProvider>
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName="Splash">
+            <Stack.Screen
+              name="Splash"
+              component={Splash}
+              options={{ animation: "fade", headerShown: false }}
+            />
+            <Stack.Screen
+              name="Login"
+              component={Login}
+              options={{ animation: "fade", headerShown: false }}
+            />
+            <Stack.Screen
+              name="Home"
+              component={Home}
+              options={{ animation: "fade", headerShown: false }}
+            />
+            <Stack.Screen
+              name="Kalender"
+              component={KalenderScreen}
+              options={{ animation: "fade", headerShown: false }}
+            />
+            <Stack.Screen
+              name="Cuti"
+              component={CutiScreen}
+              options={{ animation: "slide_from_right", headerShown: false }}
+            />
+            <Stack.Screen
+              name="TambahCuti"
+              component={TambahCutiScreen}
+              options={{ animation: "slide_from_right", headerShown: false }}
+            />
+            <Stack.Screen
+              name="PembatalanCuti"
+              component={PembatalanCutiScreen}
+              options={{ animation: "slide_from_right", headerShown: false }}
+            />
+            <Stack.Screen
+              name="LihatCuti"
+              component={DetailCutiScreen}
+              options={{ animation: "slide_from_right", headerShown: false }}
+            />
+
+            <Stack.Screen
+              name="Profile"
+              component={Profile}
+              options={{ animation: "fade", headerShown: false }}
+            />
+
+            <Stack.Screen
+              name="ForgotPassword"
+              component={ForgotPassword}
+              options={{ animation: "slide_from_right", headerShown: false }}
+            />
+            <Stack.Screen name="Kehadiran" component={KehadiranScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="IDL" component={IDLScreen} options={{ headerShown: false }}/>
+            <Stack.Screen name="TambahIDL" component={TambahIDLScreen}  options={{ headerShown: false }}/>
+            <Stack.Screen name="FilterIDL" component={FilterIDLScreen}  options={{ headerShown: false }}/>
+            <Stack.Screen name="LihatIDL" component={DetailIDLScreen}  options={{ headerShown: false }}/>
+            <Stack.Screen name="IMP" component={IMPScreen}  options={{ headerShown: false }} />
+            <Stack.Screen name="TambahIMP" component={TambahIMPScreen}   options={{ headerShown: false }}/>
+            <Stack.Screen name="FilterIMP" component={FilterIMPScreen}  options={{ headerShown: false }}/>
+            <Stack.Screen name="LihatIMP" component={DetailIMPScreen}  options={{ headerShown: false }} />
+            <Stack.Screen
+              name="Checkin"
+              options={{ headerShown: false }}
+            >
+              {(props) => (
+                <CameraScreen
+                  {...props}
+                  mode="checkin" // atau "checkout"
+                  onSuccess={() => {
+                    console.log("✅ Berhasil checkin");
+                    navigation.navigate('Kalender')
+                  }}
+                />
+              )}
+            </Stack.Screen>
+            <Stack.Screen
+              name="Checkout"
+              options={{ headerShown: false }}
+            >
+              {(props) => (
+                <CameraScreen
+                  {...props}
+                  mode="checkout" 
+                  onSuccess={() => {
+                    console.log("✅ Berhasil checkout");
+                    navigation.navigate('Kalender')
+                  }}
+                />
+              )}
+            </Stack.Screen>
+          </Stack.Navigator>
+        </NavigationContainer>
+        <Toast />
       </AuthProvider>
 
       {/* Toast diletakkan di luar agar bisa tampil di atas semua layar */}

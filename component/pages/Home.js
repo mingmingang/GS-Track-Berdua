@@ -22,6 +22,9 @@ import BASE_URL from "../backbone/Constant";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import { getServerIP } from "../backbone/ApiConfig";
+import NotificationIcon from "./NotificationIcon";
+
+
 
 const screenWidth = Dimensions.get("window").width;
 const itemWidth = (screenWidth - 40) / 4;
@@ -138,6 +141,7 @@ export default function HomeScreen() {
         }),
       });
 
+      console.log(response);
       const result = await response.json();
 
       if (result.result === 200 && result.data) {
@@ -266,7 +270,7 @@ export default function HomeScreen() {
               <MaterialIcons name="notifications" size={28} color="#1E3668" />
             </TouchableOpacity>
           </View>
-
+          
           <View style={styles.statusRow}>
             <View
               style={[

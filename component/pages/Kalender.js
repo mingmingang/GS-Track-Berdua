@@ -272,6 +272,21 @@ export default function KalenderScreen() {
                       return;
                     }
 
+<<<<<<< HEAD
+=======
+                    // Validasi jam boleh check-in hanya antara 06:00 - 09:00
+                    if (jam < 6) {
+                        Alert.alert("Terlalu pagi!", "Check-in hanya bisa dilakukan mulai jam 06:00 pagi.");
+                        return;
+                    }
+
+                    if (jam > 9 || (jam === 9 && menit > 0)) {
+                        Alert.alert("Terlambat!", "Check-in hanya bisa dilakukan sebelum jam 09:00.");
+                        return;
+                    }
+
+                    // Lolos semua validasi, navigasi ke halaman Check-in
+>>>>>>> 8f074dc43387a55cce989337a1679b837e0d6690
                     navigation.navigate("Checkin");
                   } catch (err) {
                     Alert.alert(i18n.t("failed"), i18n.t("checkin_failed"));
@@ -293,12 +308,17 @@ export default function KalenderScreen() {
 
                     const now = new Date();
                     const jam = now.getHours();
+<<<<<<< HEAD
 
                     if (jam < 16) {
                       Alert.alert(i18n.t("not_time_yet"));
                       return;
                     }
 
+=======
+                    const menit = now.getMinutes();
+                    // Cek status absen dari API
+>>>>>>> 8f074dc43387a55cce989337a1679b837e0d6690
                     const response = await fetch(`${BASE_URL}kehadiran/currenthadir`, {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
@@ -323,6 +343,17 @@ export default function KalenderScreen() {
                       return;
                     }
 
+                    if (keluarAbsen === null && jam < 16) {
+                        Alert.alert("Belum waktunya!", "Check-out hanya bisa dilakukan setelah jam 16:00.");
+                        return;
+                    }
+
+                    if(keluarAbsen !== null && jam > 16){
+                        Alert.alert("Info", "Mo");
+                        return;
+                    }
+
+                    // Lolos semua validasi, lanjut ke halaman Checkout
                     navigation.navigate("Checkout");
                   } catch (err) {
                     Alert.alert(i18n.t("failed"), i18n.t("checkout_failed"));

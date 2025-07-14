@@ -5,6 +5,8 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  Modal,
+  Pressable
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import styles from "../styles/NotificationStyles"; // pastikan lo punya file style
@@ -99,9 +101,11 @@ import { FontAwesome } from "@expo/vector-icons";
 
 
 export default function NotificationScreen() {
-  const [filter, setFilter] = useState("all");
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
+    const [selectedNotif, setSelectedNotif] = useState(null);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [filter, setFilter] = useState("all");
+    const [notifications, setNotifications] = useState([]);
+    const [loading, setLoading] = useState(true);
 
   // Background warna berdasarkan tipe
   const renderIconBackground = (type) => {
@@ -138,6 +142,38 @@ export default function NotificationScreen() {
         return "#666";
     }
   };
+
+  const handleNotifPress = async (notif) => {
+    setSelectedNotif(notif);
+    setModalVisible(true);
+
+    // Kalau belum dibaca, langsung update status
+    if (notif.statusDibaca === 0) {
+        try {
+        await fetch(`${BASE_URL}notifikasi/update`, {
+            method: "POST",
+            headers: {
+            "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+            idNotif: notif.idNotif,
+            }),
+        });
+
+        // Update lokal state biar langsung kebaca
+        setNotifications((prev) =>
+            prev.map((n) =>
+            n.idNotif === notif.idNotif
+                ? { ...n, statusDibaca: 1 }
+                : n
+            )
+        );
+        } catch (err) {
+        console.error("❌ Gagal update status notifikasi:", err);
+        }
+    }
+    };
+
 
   // Fetch data dari API
   const fetchNotifications = async () => {
@@ -183,27 +219,29 @@ export default function NotificationScreen() {
       ? notifications.filter((n) => n.statusDibaca === 0)
       : notifications;
 
-  const renderItem = ({ item }) => {
-  const { icon, iconType, bgColor } = getNotifIconProps(item.tipeNotif);
+    const renderItem = ({ item }) => {
+        const { icon, iconType, bgColor } = getNotifIconProps(item.tipeNotif);
 
-  return (
-        <View style={styles.notificationItem}>
-        <View style={[styles.iconWrapper, { backgroundColor: bgColor }]}>
-            {iconType === "MaterialIcons" ? (
-            <MaterialIcons name={icon} size={18} color="#1E3668" />
-            ) : (
-            <FontAwesome name={icon} size={18} color="#1E3668" />
-            )}
-        </View>
+        return (
+            <TouchableOpacity onPress={() => handleNotifPress(item)}>
+            <View style={styles.notificationItem}>
+                <View style={[styles.iconWrapper, { backgroundColor: bgColor }]}>
+                {iconType === "MaterialIcons" ? (
+                    <MaterialIcons name={icon} size={18} color="#1E3668" />
+                ) : (
+                    <FontAwesome name={icon} size={18} color="#1E3668" />
+                )}
+                </View>
 
-        <View style={styles.notificationContent}>
-            <Text style={styles.title}>{item.judulNotifikasi}</Text>
-            <Text style={styles.message}>{item.pesanNotifikasi}</Text>
-        </View>
+                <View style={styles.notificationContent}>
+                <Text style={styles.title}>{item.judulNotifikasi}</Text>
+                <Text style={styles.message}>{item.pesanNotifikasi}</Text>
+                </View>
 
-        {item.statusDibaca === 0 && <View style={styles.unreadDot} />}
-        </View>
-    );
+                {item.statusDibaca === 0 && <View style={styles.unreadDot} />}
+            </View>
+            </TouchableOpacity>
+        );
     };
 
 
@@ -252,8 +290,49 @@ export default function NotificationScreen() {
             contentContainerStyle={{ paddingBottom: 30 }}
         />
         )}
-
       </View>
+
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+        >
+        <View style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0,0,0,0.5)"
+        }}>
+            <View style={{
+            width: "85%",
+            backgroundColor: "white",
+            borderRadius: 10,
+            padding: 20,
+            elevation: 5
+            }}>
+            <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}>
+                {selectedNotif?.judulNotifikasi}
+            </Text>
+            <Text style={{ fontSize: 16, color: "#333" }}>
+                {selectedNotif?.pesanNotifikasi}
+            </Text>
+
+            <Pressable
+                onPress={() => setModalVisible(false)}
+                style={{
+                marginTop: 20,
+                backgroundColor: "#1E3668",
+                padding: 10,
+                borderRadius: 5,
+                alignSelf: "flex-end"
+                }}
+            >
+                <Text style={{ color: "white", fontWeight: "bold" }}>Tutup</Text>
+            </Pressable>
+            </View>
+        </View>
+        </Modal>
     </>
   );
 }

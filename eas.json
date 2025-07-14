@@ -12,9 +12,6 @@
       "distribution": "internal"
     },
     "production": {
-      "android": {
-        "package": "id.co.astra.polytechnic.GSTrackMobile"
-      },
       "autoIncrement": true
     }
   },

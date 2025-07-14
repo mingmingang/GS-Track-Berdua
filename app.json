@@ -25,7 +25,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.mikhaildh20.GSTrackMobile"
+      "package": "id.co.astra.polytechnic.GSTrackMobile"
     },
     "web": {
       "favicon": "./assets/favicon.png"

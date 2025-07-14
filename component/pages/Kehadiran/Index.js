@@ -6,6 +6,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Modal,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { ImageBackground, Alert } from "react-native";
@@ -13,13 +15,16 @@ import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import BASE_URL from "../../backbone/Constant";
 import FilterTahun from "../../part/Filter";
-
+import MapView, { Marker, Callout } from "react-native-maps";
 
 const KehadiranScreen = ({ route }) => {
   const navigation = useNavigation();
   const [yearModalVisible, setYearModalVisible] = useState(false);
   const [kehadiranList, setKehadiranList] = useState([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
+  const [mapModalVisible, setMapModalVisible] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(null);
   
   const getData = async (key) => {
     try {
@@ -99,31 +104,35 @@ const KehadiranScreen = ({ route }) => {
   const [selectedStatus, setSelectedStatus] = useState("Semua");
 
    // Dummy data (replace with API call)
-    useEffect(() => {
+  useEffect(() => {
     const fetchKehadiranList = async () => {
       try {
         const user = await getData("lastLogin");
-        if (!user?.username) {
-          Alert.alert("Error", "Data login tidak ditemukan.");
-          return;
-        }
+        if (!user?.username) return Alert.alert("Error", "Data login tidak ditemukan.");
 
         const response = await fetch(`${BASE_URL}kehadiran/currentlogged`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ idKaryawan: user.username }),
         });
 
         const result = await response.json();
         const data = result?.data || [];
 
+        console.log("👉 item dari API:", data); // Tambahkan ini! console.log("👉 item dari API:", item); // Tambahkan ini!
         const formatted = data.map((item) => ({
           tanggal: item.tanggalMasuk,
           status: getStatusFromIndikator(item.indikatorKehadiran),
           jamMasuk: item.masukAbsen ? item.masukAbsen.slice(11, 16).replace(":", ".") : null,
           jamKeluar: item.keluarAbsen ? item.keluarAbsen.slice(11, 16).replace(":", ".") : null,
+          lokasiMasuk: item.latitudeMasuk && item.longitudeMasuk ? {
+            latitude: item.latitudeMasuk,
+            longitude: item.longitudeMasuk
+          } : null,
+          lokasiKeluar: item.latitudeKeluar && item.longitudeKeluar ? {
+            latitude: item.latitudeKeluar,
+            longitude: item.longitudeKeluar
+          } : null,
         }));
 
         setKehadiranList(formatted);
@@ -159,130 +168,152 @@ const KehadiranScreen = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      <ImageBackground
-        source={require("../../../assets/bg_navbar.png")}
-        style={styles.header}
-        resizeMode="cover"
-      >
-        <Ionicons
-          name="arrow-back"
-          size={24}
-          color="#fff"
-          style={{ paddingLeft: 20 }}
-          onPress={() => navigation.goBack()}
-        />
+      <ImageBackground source={require("../../../assets/bg_navbar.png")} style={styles.header} resizeMode="cover">
+        <Ionicons name="arrow-back" size={24} color="#fff" style={{ paddingLeft: 20 }} />
         <Text style={styles.headerText}>Kehadiran</Text>
         <View style={{ width: 24 }} />
       </ImageBackground>
+
+      {/* Modal Filter Tahun */}
       <FilterTahun
-          visible={yearModalVisible}
-          onClose={() => setYearModalVisible(false)}
-          selectedYear={selectedYear}
-          onSelectYear={(year) => {
-            setSelectedYear(year);
-            // fetchKehadiranList(year);
-          }}
-        />
+        visible={yearModalVisible}
+        onClose={() => setYearModalVisible(false)}
+        selectedYear={selectedYear}
+        onSelectYear={(year) => setSelectedYear(year)}
+      />
+
+      {/* Modal Map Lokasi */}
+      {mapModalVisible && selectedLocation && (
+        <Modal visible={mapModalVisible} transparent animationType="slide">
+          <View style={{ flex: 1, backgroundColor: '#000000aa', justifyContent: 'center', alignItems: 'center' }}>
+            <View style={{ width: '90%', height: 450, backgroundColor: 'white', borderRadius: 12, overflow: 'hidden' }}>
+              
+              {/* Legenda */}
+              <View style={{ flexDirection: 'row', justifyContent: 'space-around', padding: 8, backgroundColor: '#f0f0f0' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: 'green', marginRight: 6 }} />
+                  <Text style={{ fontSize: 12 }}>Lokasi Masuk</Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: 'red', marginRight: 6 }} />
+                  <Text style={{ fontSize: 12 }}>Lokasi Keluar</Text>
+                </View>
+              </View>
+
+              <MapView
+                style={{ flex: 1 }}
+                initialRegion={{
+                  latitude: selectedLocation?.masuk?.latitude || -6.2,
+                  longitude: selectedLocation?.masuk?.longitude || 106.8,
+                  latitudeDelta: 0.005,
+                  longitudeDelta: 0.005,
+                }}
+              >
+                {/* Marker Masuk */}
+                {selectedLocation.masuk && (
+                  <Marker coordinate={selectedLocation.masuk} pinColor="green">
+                    <Callout>
+                      <Text>Lokasi Masuk</Text>
+                    </Callout>
+                  </Marker>
+                )}
+
+                {/* Marker Keluar */}
+                {selectedLocation.keluar && (
+                  <Marker coordinate={selectedLocation.keluar} pinColor="red">
+                    <Callout>
+                      <Text>Lokasi Keluar</Text>
+                    </Callout>
+                  </Marker>
+                )}
+              </MapView>
+
+              {/* Tombol Tutup */}
+              <TouchableOpacity
+                onPress={() => setMapModalVisible(false)}
+                style={{ padding: 12, backgroundColor: '#1E2D56', alignItems: 'center' }}
+              >
+                <Text style={{ color: 'white', fontWeight: 'bold' }}>Tutup</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
+
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-      
-      
-      {/* Ambil data hari ini */}
-      {(() => {
-        const today = new Date().toISOString().split("T")[0]; // contoh: "2025-07-13"
-        const todayData = kehadiranList.find((item) => item.tanggal === today);
+        <View style={styles.dateRangeBox}>
+          <Text style={styles.dateRangeText}>{getTanggalRange(selectedYear)}</Text>
+          <TouchableOpacity onPress={() => setYearModalVisible(true)}>
+            <MaterialIcons name="filter-list" size={20} color="#1E2D56" />
+          </TouchableOpacity>
+        </View>
 
-        if (!todayData) {
-          return (
-            <View style={styles.infoBanner}>
-              <Text style={styles.infoText}>Data kehadiran hari ini belum tersedia</Text>
-            </View>
-          );
-        }
+        <Text style={{ fontWeight: "bold", marginBottom: 8 }}>Kehadiran</Text>
 
-        const { status, jamMasuk, jamKeluar } = todayData;
-
-        if (status === "Alpa" || status === "IMP") {
-          return (
-            <View style={styles.infoBanner}>
-              <Text style={styles.infoText}>Anda tidak absen hari ini ({status})</Text>
-            </View>
-          );
-        }
-
-        return (
-          <View style={styles.infoBanner}>
-            <Text style={styles.infoText}>Status: {status}</Text>
-            <Text style={styles.infoText}>
-              Masuk: {jamMasuk || "--.--"} | Keluar: {jamKeluar || "--.--"}
-            </Text>
-          </View>
-        );
-      })()}
-
-
-      <View style={styles.dateRangeBox}>
-        <Text style={styles.dateRangeText}>{getTanggalRange(selectedYear)}</Text>
-        <TouchableOpacity onPress={() => setYearModalVisible(true)}>
-          <MaterialIcons name="filter-list" size={20} color="#1E2D56" />
-        </TouchableOpacity>
-      </View>
-
-      <Text style={{ fontWeight: "bold", marginBottom: 8 }}>Kehadiran</Text>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View style={styles.filterBar}>
-          {["Semua", "Hadir", "Alpa", "Cuti", "IDL", "IMP"].map((status) => (
-            <TouchableOpacity
-              key={status}
-              onPress={() => setSelectedStatus(status)}
-            >
-              <Text
-                style={[
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={styles.filterBar}>
+            {["Semua", "Hadir", "Alpa", "Cuti", "IDL", "IMP"].map((status) => (
+              <TouchableOpacity key={status} onPress={() => setSelectedStatus(status)}>
+                <Text style={[
                   styles.filterItem,
                   selectedStatus === status && styles.filterItemActive,
-                ]}
-              >
-                {status}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
-
-      {filteredKehadiran.length === 0 ? (
-        <View style={{ alignItems: 'center', marginTop: 20 }}>
-          <Text style={{ color: '#666', fontStyle: 'italic' }}>Data kehadiran tidak ada</Text>
-        </View>
-      ) : (
-        filteredKehadiran.map((item, idx) => (
-          <View key={idx} style={styles.attendanceCard}>
-            <View style={styles.cardContentRow}>
-              <View style={styles.leftContent}>
-                <View style={[styles.badge, { backgroundColor: getStatusColor(item.status) }]}>
-                  <Text style={styles.badgeText}>{item.status}</Text>
-                </View>
-                <View style={styles.dateRow}>
-                  <MaterialIcons name="calendar-today" size={18} color="#333" style={styles.calendarIcon} />
-                  <Text style={styles.dateText}>{formatTanggal(item.tanggal)}</Text>
-                </View>
-              </View>
-              <View style={styles.rightContent}>
-                <View style={styles.timeItem}>
-                  <Text style={styles.timeLabel}>Masuk</Text>
-                  <Text style={styles.timeText}>{item.jamMasuk || "--.--"}</Text>
-                </View>
-                <Text style={styles.arrow}>→</Text>
-                <View style={styles.timeItem}>
-                  <Text style={styles.timeLabel}>Keluar</Text>
-                  <Text style={styles.timeText}>{item.jamKeluar || "--.--"}</Text>
-                </View>
-              </View>
-            </View>
+                ]}>
+                  {status}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
-        ))
-      )}
-    </ScrollView>
+        </ScrollView>
+
+        {filteredKehadiran.length === 0 ? (
+          <View style={{ alignItems: 'center', marginTop: 20 }}>
+            <Text style={{ color: '#666', fontStyle: 'italic' }}>Data kehadiran tidak ada</Text>
+          </View>
+        ) : (
+          filteredKehadiran.map((item, idx) => (
+            <TouchableOpacity
+              key={idx}
+              onPress={() => {
+                if (item.lokasiMasuk) {
+                  setSelectedLocation({
+                    masuk: item.lokasiMasuk,
+                    keluar: item.lokasiKeluar,
+                  });
+                  setMapModalVisible(true);
+                } else {
+                  Alert.alert("Lokasi Tidak Tersedia", "Belum ada lokasi untuk data ini.");
+                }
+              }}
+            >
+              <View style={styles.attendanceCard}>
+                <View style={styles.cardContentRow}>
+                  <View style={styles.leftContent}>
+                    <View style={[styles.badge, { backgroundColor: getStatusColor(item.status) }]}>
+                      <Text style={styles.badgeText}>{item.status}</Text>
+                    </View>
+                    <View style={styles.dateRow}>
+                      <MaterialIcons name="calendar-today" size={18} color="#333" />
+                      <Text style={styles.dateText}>{formatTanggal(item.tanggal)}</Text>
+                    </View>
+                  </View>
+                  <View style={styles.rightContent}>
+                    <View style={styles.timeItem}>
+                      <Text style={styles.timeLabel}>Masuk</Text>
+                      <Text style={styles.timeText}>{item.jamMasuk || "--.--"}</Text>
+                    </View>
+                    <Text style={styles.arrow}>→</Text>
+                    <View style={styles.timeItem}>
+                      <Text style={styles.timeLabel}>Keluar</Text>
+                      <Text style={styles.timeText}>{item.jamKeluar || "--.--"}</Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))
+        )}
+      </ScrollView>
     </View>
   );
 };

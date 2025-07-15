@@ -16,14 +16,28 @@
       "supportsTablet": true
     },
     "android": {
+      "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "id.co.astra.polytechnic.GSTrackMobile",
+      "googleServicesFile": "./google-services.json" 
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-notifications"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "8aa5b3e5-9293-4df6-b836-09900a8d4c09"
+      }
     }
   }
 }

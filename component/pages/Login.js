@@ -14,14 +14,64 @@ import { MaterialIcons } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../backbone/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import BASE_URL from "../backbone/Constant";
+import * as Notifications from "expo-notifications";
+import * as Device from "expo-device";
+// Fungsi daftar token dan kirim ke backend
+const registerAndSendToken = async (npk) => {
+  try {
+    const token = await registerForPushNotificationAsync();
+    if (!token) return;
+
+    console.log("📱 Token dapet:", token);
+    console.log(npk);
+
+    const res = await fetch(`${BASE_URL}token/register-token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        idKaryawan: npk,
+        token: token
+      }),
+    });
+
+    const result = await res.json();
+    console.log("📬 Respon server:", result);
+  } catch (err) {
+    console.error("❌ Gagal kirim token:", err);
+  }
+};
+
+// Fungsi ambil permission notifikasi dan dapetin token
+async function registerForPushNotificationAsync() {
+  let token;
+  if (Device.isDevice) {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (finalStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== "granted") {
+      alert("❌ Izin notifikasi ditolak!");
+      return null;
+    }
+
+    token = (await Notifications.getExpoPushTokenAsync()).data;
+  } else {
+    alert("📵 Jalankan di HP asli ya bro!");
+  }
+
+  return token;
+}
 
 const Login = ({ navigation }) => {
   const { setUser } = useContext(AuthContext);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
-  const [savedUsers, setSavedUsers] = useState([]);
-  const [showUserList, setShowUserList] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
@@ -29,7 +79,6 @@ const Login = ({ navigation }) => {
       const saved = await AsyncStorage.getItem("lastLogin");
       if (saved) {
         const parsed = JSON.parse(saved);
-        console.log("dataa", parsed);
         setUsername(parsed.username);
         setPassword(parsed.password);
         setRemember(true);
@@ -40,29 +89,20 @@ const Login = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch("http://172.20.10.2:8080/login", {
+      const response = await fetch(BASE_URL + "karyawan/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId: username,
+          npk: username,
           password: password,
         }),
       });
 
-      if (remember) {
-        const savedData = {
-          username,
-          password,
-        };
-        await AsyncStorage.setItem("lastLogin", JSON.stringify(savedData));
-      }
-      if (!remember) {
-        await AsyncStorage.removeItem("lastLogin");
-      }
-
       const result = await response.json();
+      console.log(result.data.npk);
+
       if (result.result === 200) {
         setUser(result.data);
 
@@ -74,6 +114,7 @@ const Login = ({ navigation }) => {
         } else {
           await AsyncStorage.removeItem("lastLogin");
         }
+        await registerAndSendToken(username);
 
         Toast.show({
           type: "success",
@@ -95,7 +136,7 @@ const Login = ({ navigation }) => {
       Toast.show({
         type: "error",
         text1: "Kesalahan Server",
-        text2: "Tidak dapat terhubung ke server",
+        text2: "Tidak dapat terhubung ke server: " + error,
       });
       console.error(error);
     }

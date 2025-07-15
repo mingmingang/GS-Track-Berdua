@@ -3,6 +3,7 @@ import { StyleSheet, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Home from "./component/pages/Home";
+import KalenderScreen from "./component/pages/Kalender";
 import CutiScreen from "./component/pages/Cuti/karyawan/Index";
 import TambahCutiScreen from "./component/pages/Cuti/karyawan/Tambah";
 import PembatalanCutiScreen from "./component/pages/Cuti/karyawan/Pembatalan";
@@ -15,6 +16,9 @@ import IMPScreen from "./component/pages/IMP/karyawan/Index";
 import TambahIMPScreen from "./component/pages/IMP/karyawan/Tambah";
 import FilterIMPScreen from "./component/pages/IMP/karyawan/Filter";
 import DetailIMPScreen from "./component/pages/IMP/karyawan/Lihat";
+import KehadiranScreen from "./component/pages/Kehadiran/Index";
+import NotificationScreen from "./component/pages/Notifications";
+import CameraScreen from "./component/pages/Camera";
 import * as SplashScreen from "expo-splash-screen";
 import {
   useFonts,
@@ -33,7 +37,6 @@ import ForgotPassword from "./component/pages/ForgotPassword";
 import './i18n';
 const Stack = createNativeStackNavigator();
 
-
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
@@ -44,6 +47,8 @@ export default function App() {
     Poppins_700Bold,
   });
 
+ 
+
   useEffect(() => {
     async function prepare() {
       if (fontsLoaded) {
@@ -52,6 +57,8 @@ export default function App() {
     }
     prepare();
   }, [fontsLoaded]);
+
+
 
   if (!fontsLoaded) {
     return null;
@@ -75,6 +82,16 @@ export default function App() {
             <Stack.Screen
               name="Home"
               component={Home}
+              options={{ animation: "fade", headerShown: false }}
+            />
+            <Stack.Screen
+              name="Kalender"
+              component={KalenderScreen}
+              options={{ animation: "fade", headerShown: false }}
+            />
+            <Stack.Screen
+              name="Notification"
+              component={NotificationScreen}
               options={{ animation: "fade", headerShown: false }}
             />
             <Stack.Screen
@@ -109,7 +126,7 @@ export default function App() {
               component={ForgotPassword}
               options={{ animation: "slide_from_right", headerShown: false }}
             />
-
+            <Stack.Screen name="Kehadiran" component={KehadiranScreen} options={{ headerShown: false }} />
             <Stack.Screen name="IDL" component={IDLScreen} options={{ headerShown: false }}/>
             <Stack.Screen name="TambahIDL" component={TambahIDLScreen}  options={{ headerShown: false }}/>
             <Stack.Screen name="FilterIDL" component={FilterIDLScreen}  options={{ headerShown: false }}/>
@@ -118,6 +135,36 @@ export default function App() {
             <Stack.Screen name="TambahIMP" component={TambahIMPScreen}   options={{ headerShown: false }}/>
             <Stack.Screen name="FilterIMP" component={FilterIMPScreen}  options={{ headerShown: false }}/>
             <Stack.Screen name="LihatIMP" component={DetailIMPScreen}  options={{ headerShown: false }} />
+            <Stack.Screen
+              name="Checkin"
+              options={{ headerShown: false }}
+            >
+              {(props) => (
+                <CameraScreen
+                  {...props}
+                  mode="checkin" // atau "checkout"
+                  onSuccess={() => {
+                    console.log("✅ Berhasil checkin");
+                    navigation.navigate('Kalender')
+                  }}
+                />
+              )}
+            </Stack.Screen>
+            <Stack.Screen
+              name="Checkout"
+              options={{ headerShown: false }}
+            >
+              {(props) => (
+                <CameraScreen
+                  {...props}
+                  mode="checkout" 
+                  onSuccess={() => {
+                    console.log("✅ Berhasil checkout");
+                    navigation.navigate('Kalender')
+                  }}
+                />
+              )}
+            </Stack.Screen>
           </Stack.Navigator>
         </NavigationContainer>
         <Toast />

@@ -101,20 +101,6 @@ export default function HomeScreen() {
   const [gpsConnected, setGpsConnected] = useState(true);
   const [imageUrl, setImageUrl] = useState(null);
 
-  useEffect(() => {
-    const buildImageUrl = async () => {
-      if (user?.fotoKaryawan) {
-        const ip = await getServerIP();
-        const fullUrl = `http://${ip}:8080/karyawan/lampiran/${encodeURIComponent(
-          user.fotoKaryawan
-        )}?t=${Date.now()}`;
-        setImageUrl(fullUrl);
-      }
-    };
-    buildImageUrl();
-  }, [user]);
-  console.log(" image", imageUrl);
-
   const getData = async (key) => {
     try {
       const jsonValue = await AsyncStorage.getItem(key);
@@ -128,54 +114,64 @@ export default function HomeScreen() {
     }
   };
 
-  const loadCurrentHadir = async () => {
-    try {
-      const current = await getData("lastLogin");
-      const response = await fetch(BASE_URL + "kehadiran/currenthadir", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          idKaryawan: current.username,
-        }),
-      });
+    const loadCurrentHadir = async () => {
+      try {
+        const current = await getData("lastLogin");
 
-      console.log(response);
-      const result = await response.json();
+        if (!current || !current.username) {
+          console.warn("⚠️ Data login tidak ditemukan!");
+          setJamMasuk("-");
+          setJamKeluar("-");
+          return;
+        }
 
-      if (result.result === 200 && result.data) {
-        const masuk = result.data.masukAbsen;
-        const keluar = result.data.keluarAbsen;
+        console.log("👤 Username:", current.username);
 
-        const formatJam = (datetime) => {
-          if (!datetime) return "-";
-          const jam = new Date(datetime).getHours().toString().padStart(2, "0");
-          const menit = new Date(datetime)
-            .getMinutes()
-            .toString()
-            .padStart(2, "0");
-          return `${jam}:${menit}`;
-        };
+        const response = await fetch(BASE_URL + "kehadiran/currenthadir", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ idKaryawan: current.username }),
+        });
 
-        setJamMasuk(formatJam(masuk));
-        setJamKeluar(formatJam(keluar));
-      } else {
+        const result = await response.json();
+
+        console.log("📥 Response kehadiran:", result);
+
+        if (result.result === 200 && result.data) {
+          const masuk = result.data.masukAbsen;
+          const keluar = result.data.keluarAbsen;
+
+          const formatJam = (datetime) => {
+            if (!datetime) return "-";
+            const date = new Date(datetime);
+            const jam = date.getHours().toString().padStart(2, "0");
+            const menit = date.getMinutes().toString().padStart(2, "0");
+            return `${jam}:${menit}`;
+          };
+
+          setJamMasuk(formatJam(masuk));
+          setJamKeluar(formatJam(keluar));
+        } else {
+          setJamMasuk("-");
+          setJamKeluar("-");
+        }
+      } catch (error) {
+        console.error("❌ Gagal ambil data kehadiran:", error);
         setJamMasuk("-");
         setJamKeluar("-");
       }
-    } catch (error) {
-      console.error("Gagal ambil data kehadiran:", error);
-      setJamMasuk("-");
-      setJamKeluar("-");
-    }
-  };
+    };
+
 
   let locationSubscription = null;
 
   useEffect(() => {
+    // 1. Load absensi
     loadCurrentHadir();
 
+    // 2. Ping server setiap 5 detik
     const interval = setInterval(() => {
       fetch(BASE_URL + "service/shoot")
         .then((res) => {
@@ -183,6 +179,23 @@ export default function HomeScreen() {
         })
         .catch(() => setServerConnected(false));
     }, 5000);
+
+    // 3. Ambil foto karyawan
+    const buildImageUrl = async () => {
+      if (user?.fotoKaryawan) {
+        const ip = await getServerIP();
+        const fullUrl = `http://${ip}:8082/karyawan/lampiran/${encodeURIComponent(
+          user.fotoKaryawan
+        )}?t=${Date.now()}`;
+        setImageUrl(fullUrl);
+        console.log("✅ Image URL:", fullUrl);
+      }
+    };
+
+    buildImageUrl();
+
+    // 4. GPS tracking
+    let locationSubscription;
 
     const startWatchingLocation = async () => {
       try {
@@ -228,13 +241,15 @@ export default function HomeScreen() {
 
     startWatchingLocation();
 
+    // 5. Clean up
     return () => {
       clearInterval(interval);
       if (locationSubscription) {
         locationSubscription.remove();
       }
     };
-  }, []);
+  }, [user]); // <- Tetap re-run kalau data `user` berubah
+
 
   return (
     <View style={styles.container}>

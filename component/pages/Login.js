@@ -92,7 +92,7 @@ const Login = ({ navigation }) => {
   const handleLogin = async () => {
     try {
       const ip = await getServerIP();
-      const response = await fetch(`http://${ip}:8080/karyawan/login`, {
+      const response = await fetch(`http://${ip}:8082/karyawan/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -272,6 +272,16 @@ export default function KalenderScreen() {
 
                     const resJson = await response.json();
 
+                    console.log(resJson.data);
+
+                    if (resJson.data === null) {
+                        Alert.alert(
+                          "Info",
+                          "Anda sudah terlambat"
+                        );
+                        return;
+                    }
+
                     if (resJson.data?.masukAbsen !== null) {
                       Alert.alert(
                         "Info",

@@ -57,7 +57,7 @@ export const uploadLampiran = async (fileUri, fileName, api) => {
       type: mimeType,
     });
 
-    const response = await fetch(`http://${ip}:8080/${api}`, {
+    const response = await fetch(`http://${ip}:8082/${api}`, {
       method: "POST",
       body: formDataUpload,
       headers: {
@@ -80,7 +80,7 @@ export const updateUserPassword = async ({ npk, oldPassword, newPassword }) => {
   console.log("coba", npk, oldPassword, newPassword);
   try {
     const ip = await getServerIP();
-    const response = await fetch(`http://${ip}:8080/karyawan/password`, {
+    const response = await fetch(`http://${ip}:8082/karyawan/password`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -125,7 +125,7 @@ export const updateProfileData = async (npk, formData) => {
 
     console.log("payload", payload);
     const ip = await getServerIP();
-    const response = await fetch(`http://${ip}:8080/karyawan`, {
+    const response = await fetch(`http://${ip}:8082/karyawan`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -197,7 +197,7 @@ export const pickFileFromCamera = async () => {
 export const fetchUserData = async (npk) => {
   try {
     const ip = await getServerIP();
-    const response = await fetch(`http://${ip}:8080/karyawan/${npk}/keluarga`);
+    const response = await fetch(`http://${ip}:8082/karyawan/${npk}/keluarga`);
     return handleResponse(response);
   } catch (error) {
     console.error("Gagal mengambil data karyawan:", error);
@@ -208,7 +208,7 @@ export const fetchUserData = async (npk) => {
 export const fetchAllDiagnosa = async () => {
   try {
     const ip = await getServerIP();
-    const response = await fetch(`http://${ip}:8080/diagnosa`);
+    const response = await fetch(`http://${ip}:8082/diagnosa`);
     return handleResponse(response);
   } catch (error) {
     console.error("Gagal mengambil data diagnosa:", error);
@@ -220,7 +220,7 @@ export const fetchRumahSakit = async (tipe) => {
   try {
     const ip = await getServerIP();
     const encodedTipe = encodeURIComponent(tipe);
-    const url = `http://${ip}:8080/rumahsakit?tipe=${encodedTipe}`;
+    const url = `http://${ip}:8082/rumahsakit?tipe=${encodedTipe}`;
     const response = await fetch(url);
     return handleResponse(response);
   } catch (error) {
@@ -232,7 +232,7 @@ export const fetchRumahSakit = async (tipe) => {
 export const submitReimbursement = async (formData) => {
   try {
     const ip = await getServerIP();
-    const url = `http://${ip}:8080/reimbursement`;
+    const url = `http://${ip}:8082/reimbursement`;
     const response = await fetch(url, {
       method: "POST",
       body: formData,
@@ -257,7 +257,7 @@ export const fetchJatahCutiAPI = async (
   try {
     const ip = await getServerIP();
     const response = await fetch(
-      `http://${ip}:8080/jatahcuti/karyawan?npk=${userId}&tahun=${selectedYear}&tipe=${selectedJenis}`
+      `http://${ip}:8082/jatahcuti/karyawan?npk=${userId}&tahun=${selectedYear}&tipe=${selectedJenis}`
     );
     const data = await response.json();
 
@@ -293,7 +293,7 @@ export const fetchCutiListAPI = async (
     });
 
     const response = await fetch(
-      `http://${ip}:8080/cuti/karyawan?${query.toString()}`
+      `http://${ip}:8082/cuti/karyawan?${query.toString()}`
     );
     const data = await response.json();
 
@@ -309,7 +309,7 @@ export const fetchDetailCuti = async (cutiId) => {
 
   try {
     const ip = await getServerIP();
-    const BASE_URL = `http://${ip}:8080`;
+    const BASE_URL = `http://${ip}:8082`;
 
     const response = await fetch(`${BASE_URL}/cuti/${cutiId}`);
     const data = await response.json();
@@ -326,7 +326,7 @@ export const fetchDetailCuti = async (cutiId) => {
 
 export const fetchLastCutiId = async () => {
   const ip = await getServerIP();
-  const response = await fetch(`http://${ip}:8080/cuti`);
+  const response = await fetch(`http://${ip}:8082/cuti`);
   const data = await response.json();
   return data;
 };
@@ -334,7 +334,7 @@ export const fetchLastCutiId = async () => {
 export const submitPengajuanCuti = async (payload) => {
   try {
     const ip = await getServerIP();
-    const response = await fetch(`http://${ip}:8080/cuti`, {
+    const response = await fetch(`http://${ip}:8082/cuti`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

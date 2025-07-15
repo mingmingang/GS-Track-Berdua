@@ -224,135 +224,122 @@ export default function KalenderScreen() {
               <MaterialIcons name="calendar-month" size={24} color="#fff" />
             </TouchableOpacity>
 
-           <TouchableOpacity
+              <TouchableOpacity
                 style={styles.checkinBtn}
                 onPress={async () => {
-                    try {
-                    // Ambil data login
+                  try {
                     const current = await getData("lastLogin");
                     if (!current?.username) {
-                        Alert.alert("Error", "Data login tidak ditemukan.");
-                        return;
+                      Alert.alert("Error", "Data login tidak ditemukan.");
+                      return;
                     }
 
-                    // Ambil waktu sekarang
-                    const now = new Date();
-                    const jam = now.getHours();
-                    const menit = now.getMinutes();
-
-                    // Cek apakah sudah pernah check-in hari ini
+                    // Cek status absen duluan
                     const response = await fetch(`${BASE_URL}kehadiran/currenthadir`, {
-                        method: "POST",
-                        headers: {
+                      method: "POST",
+                      headers: {
                         "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
+                      },
+                      body: JSON.stringify({
                         idKaryawan: current.username,
-                        }),
+                      }),
                     });
 
                     const resJson = await response.json();
                     console.log("✅ Response:", resJson);
 
-                    if (resJson.data !== null) {
-                        Alert.alert("Info", "Anda sudah melakukan check-in hari ini.");
-                        return;
+                    if (resJson.data?.masukAbsen !== null) {
+                      Alert.alert("Info", "Anda sudah melakukan check-in hari ini.");
+                      return;
                     }
 
-                    // Validasi jam boleh check-in hanya antara 06:00 - 09:00
+                    // Cek waktu
+                    const now = new Date();
+                    const jam = now.getHours();
+                    const menit = now.getMinutes();
+
                     if (jam < 6) {
-                        Alert.alert("Terlalu pagi!", "Check-in hanya bisa dilakukan mulai jam 06:00 pagi.");
-                        return;
+                      Alert.alert("Terlalu pagi!", "Check-in hanya bisa dilakukan mulai jam 06:00 pagi.");
+                      return;
                     }
 
                     if (jam > 9 || (jam === 9 && menit > 0)) {
-                        Alert.alert("Terlambat!", "Check-in hanya bisa dilakukan sebelum jam 09:00.");
-                        return;
+                      Alert.alert("Terlambat!", "Check-in hanya bisa dilakukan sebelum jam 09:00.");
+                      return;
                     }
 
-                    // Lolos semua validasi, navigasi ke halaman Check-in
+                    // Lolos semua validasi
                     navigation.navigate("Checkin");
-
-                    } catch (err) {
+                  } catch (err) {
                     console.error("❌ Gagal fetch atau parsing:", err);
                     Alert.alert("Gagal", "Terjadi kesalahan saat memproses check-in.");
-                    }
+                  }
                 }}
-                >
+              >
                 <Text style={styles.checkBtnText}>Check-in</Text>
-                </TouchableOpacity>
+              </TouchableOpacity>
+
 
 
 
             <TouchableOpacity
-                style={styles.checkoutBtn}
-                onPress={async () => {
-                    try {
-                    // Ambil data login dari local storage
-                    const current = await getData("lastLogin");
-                    if (!current?.username) {
-                        Alert.alert("Error", "Data login tidak ditemukan.");
-                        return;
-                    }
+              style={styles.checkoutBtn}
+              onPress={async () => {
+                try {
+                  const current = await getData("lastLogin");
+                  if (!current?.username) {
+                    Alert.alert("Error", "Data login tidak ditemukan.");
+                    return;
+                  }
 
-                    // Cek waktu lokal
-                    const now = new Date();
-                    const jam = now.getHours();
-                    const menit = now.getMinutes();
-                    // Cek status absen dari API
-                    const response = await fetch(`${BASE_URL}kehadiran/currenthadir`, {
-                        method: "POST",
-                        headers: {
-                        "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                        idKaryawan: current.username,
-                        }),
-                    });
+                  const response = await fetch(`${BASE_URL}kehadiran/currenthadir`, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      idKaryawan: current.username,
+                    }),
+                  });
 
-                    const resJson = await response.json();
-                    console.log("✅ Response:", resJson);
+                  const resJson = await response.json();
+                  console.log("✅ Response:", resJson);
 
-                    // Validasi status absen
-                    const { masukAbsen, keluarAbsen, indikatorKehadiran } = resJson.data;
+                  const { masukAbsen, keluarAbsen, indikatorKehadiran } = resJson.data;
 
-                    if(indikatorKehadiran === 0)
-                    {
-                        Alert.alert("Info", "Anda sudah tercatat alpa.");
-                        return;
-                    }
+                  if (indikatorKehadiran === 0) {
+                    Alert.alert("Info", "Anda sudah tercatat alpa.");
+                    return;
+                  }
 
-                    if (masukAbsen === null) {
-                        Alert.alert("Info", "Anda belum melakukan check-in.");
-                        return;
-                    }
+                  if (masukAbsen === null) {
+                    Alert.alert("Info", "Anda belum melakukan check-in.");
+                    return;
+                  }
 
-                    if (keluarAbsen !== null) {
-                        Alert.alert("Info", "Anda sudah melakukan check-out.");
-                        return;
-                    }
+                  if (keluarAbsen !== null) {
+                    Alert.alert("Info", "Anda sudah melakukan check-out.");
+                    return;
+                  }
 
-                    if (keluarAbsen === null && jam < 16) {
-                        Alert.alert("Belum waktunya!", "Check-out hanya bisa dilakukan setelah jam 16:00.");
-                        return;
-                    }
+                  const now = new Date();
+                  const jam = now.getHours();
 
-                    if(keluarAbsen !== null && jam > 16){
-                        Alert.alert("Info", "Mo");
-                        return;
-                    }
+                  if (jam < 16) {
+                    Alert.alert("Belum waktunya!", "Check-out hanya bisa dilakukan setelah jam 16:00.");
+                    return;
+                  }
 
-                    // Lolos semua validasi, lanjut ke halaman Checkout
-                    navigation.navigate("Checkout");
-
-                    } catch (err) {
-                    console.error("❌ Gagal fetch atau parsing:", err);
-                    Alert.alert("Gagal", "Terjadi kesalahan saat memproses check-out.");
-                    }
-                }}
-                >
-                <Text style={styles.checkBtnText}>Check-out</Text>
-                </TouchableOpacity>
+                  // Lolos validasi
+                  navigation.navigate("Checkout");
+                } catch (err) {
+                  console.error("❌ Gagal fetch atau parsing:", err);
+                  Alert.alert("Gagal", "Terjadi kesalahan saat memproses check-out.");
+                }
+              }}
+            >
+              <Text style={styles.checkBtnText}>Check-out</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>

@@ -1,15 +1,7 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-  Modal,
-  Alert,
-} from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Modal, Alert } from "react-native";
 import { Calendar } from "react-native-calendars";
-import { Picker } from "@react-native-picker/picker";
+import { Picker } from '@react-native-picker/picker';
 import Navbar from "../backbone/Navbar";
 import { MaterialIcons } from "@expo/vector-icons";
 import { ImageBackground } from "react-native";
@@ -17,225 +9,220 @@ import { SafeAreaView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import BASE_URL from "../backbone/Constant";
-import Header from "../backbone/Header";
-import i18n from "../backbone/i18n";
-import { useTranslation } from "react-i18next";
+    
+    const getData = async (key) => {
+    try {
+        const jsonValue = await AsyncStorage.getItem(key);
+        return jsonValue != null ? JSON.parse(jsonValue) : null;
+    } catch (e) {
+        console.error("❌ Gagal ambil data:", e);
+        return null;
+    }
+    };
 
 
-const getData = async (key) => {
-  try {
-    const jsonValue = await AsyncStorage.getItem(key);
-    return jsonValue != null ? JSON.parse(jsonValue) : null;
-  } catch (e) {
-    console.error("❌ Gagal ambil data:", e);
-    return null;
-  }
-};
+    
 
-const getStatusBackgroundColor = (status) => {
-  switch (status) {
-    case "Hadir":
-      return "rgba(76, 175, 80, 0.15)"; // green soft
-    case "Alpa":
-      return "rgba(244, 67, 54, 0.15)"; // red soft
-    case "Cuti":
-      return "rgba(255, 193, 7, 0.15)"; // yellow soft
-    case "IMP":
-      return "rgba(33, 150, 243, 0.15)"; // blue soft
-    case "IDL":
-      return "rgba(0, 188, 212, 0.15)"; // cyan soft
-    default:
-      return "rgba(0,0,0,0.05)"; // fallback soft gray
-  }
-};
+    const getStatusBackgroundColor = (status) => {
+    switch (status) {
+        case "Hadir":
+        return "rgba(76, 175, 80, 0.15)"; // green soft
+        case "Alpa":
+        return "rgba(244, 67, 54, 0.15)"; // red soft
+        case "Cuti":
+        return "rgba(255, 193, 7, 0.15)"; // yellow soft
+        case "IMP":
+        return "rgba(33, 150, 243, 0.15)"; // blue soft
+        case "IDL":
+        return "rgba(0, 188, 212, 0.15)"; // cyan soft
+        default:
+        return "rgba(0,0,0,0.05)"; // fallback soft gray
+    }
+    };
 
-const getStatusColor = (status) => {
-  switch (status) {
-    case "Hadir":
-      return "rgba(76, 175, 80, 0.15)"; // green soft
-    case "Alpa":
-      return "rgba(244, 67, 54, 0.15)"; // red soft
-    case "Cuti":
-      return "rgba(255, 193, 7, 0.15)"; // yellow soft
-    case "IMP":
-      return "rgba(33, 150, 243, 0.15)"; // blue soft
-    case "IDL":
-      return "rgba(0, 188, 212, 0.15)"; // cyan soft
-    default:
-      return "rgba(0,0,0,0.05)"; // fallback gray
-  }
-};
+    const getStatusColor = (status) => {
+    switch (status) {
+        case "Hadir":
+        return "rgba(76, 175, 80, 0.15)"; // green soft
+        case "Alpa":
+        return "rgba(244, 67, 54, 0.15)"; // red soft
+        case "Cuti":
+        return "rgba(255, 193, 7, 0.15)"; // yellow soft
+        case "IMP":
+        return "rgba(33, 150, 243, 0.15)"; // blue soft
+        case "IDL":
+        return "rgba(0, 188, 212, 0.15)"; // cyan soft
+        default:
+        return "rgba(0,0,0,0.05)"; // fallback gray
+    }
+    };
 
-const getStatusTextColor = (status) => {
-  switch (status) {
-    case "Hadir":
-      return "#4CAF50";
-    case "Alpa":
-      return "#F44336";
-    case "Cuti":
-      return "#FFC107";
-    case "IMP":
-      return "#2196F3";
-    case "IDL":
-      return "#00BCD4";
-    default:
-      return "#000";
-  }
-};
+    const getStatusTextColor = (status) => {
+    switch (status) {
+        case "Hadir":
+        return "#4CAF50";
+        case "Alpa":
+        return "#F44336";
+        case "Cuti":
+        return "#FFC107";
+        case "IMP":
+        return "#2196F3";
+        case "IDL":
+        return "#00BCD4";
+        default:
+        return "#000";
+    }
+    };
 
-const getMonthIndex = (bulan) => {
-  const bulanIndex = [
-    "Januari",
-    "Februari",
-    "Maret",
-    "April",
-    "Mei",
-    "Juni",
-    "Juli",
-    "Agustus",
-    "September",
-    "Oktober",
-    "November",
-    "Desember",
-  ];
-  return bulanIndex.indexOf(bulan) + 1;
-};
+
+
+    const getMonthIndex = (bulan) => {
+    const bulanIndex = [
+        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    ];
+    return bulanIndex.indexOf(bulan) + 1;
+    };
+
 
 export default function KalenderScreen() {
-  const navigation = useNavigation();
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [activeFilters, setActiveFilters] = useState([]);
-  const [selectedMonth, setSelectedMonth] = useState("Juli");
-  const [selectedYear, setSelectedYear] = useState("2025");
-  const [currentDate, setCurrentDate] = useState("2025-07-01");
-  const [showDateModal, setShowDateModal] = useState(false);
-  const [attendanceData, setAttendanceData] = useState({});
-  const { t } = useTranslation();
+    const navigation = useNavigation();
+    const [selectedDate, setSelectedDate] = useState(null);
+    const [activeFilters, setActiveFilters] = useState([]);
+    const [selectedMonth, setSelectedMonth] = useState("Juli");
+    const [selectedYear, setSelectedYear] = useState("2025");
+    const [currentDate, setCurrentDate] = useState("2025-07-01");
+    const [showDateModal, setShowDateModal] = useState(false);
+    const [attendanceData, setAttendanceData] = useState({});
 
-  const getStatusFromIndikator = (indikator) => {
+    const getStatusFromIndikator = (indikator) => {
     switch (indikator) {
-      case 1:
-        return "Hadir";
-      case 0:
-        return "Alpa";
-      case 2:
-        return "Cuti";
-      case 3:
-        return "IMP";
-      case 4:
-        return "IDL";
-      default:
-        return "Unknown";
+        case 1: return "Hadir";
+        case 0: return "Alpa";
+        case 2: return "Cuti";
+        case 3: return "IMP";
+        case 4: return "IDL";
+        default: return "Unknown";
     }
-  };
+    };
 
-  const fetchKehadiranByMonth = async () => {
-    try {
-      const user = await getData("lastLogin");
 
-      if (!user?.username) {
-        Alert.alert(i18n.t("error"), i18n.t("login_data_not_found"));
-        return;
-      }
+    const fetchKehadiranByMonth = async () => {
+        try {
+            const user = await getData("lastLogin");
 
-      const response = await fetch(`${BASE_URL}kehadiran/currentlogged`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idKaryawan: user.username }),
-      });
+            if (!user?.username) {
+            Alert.alert("Error", "Data login tidak ditemukan.");
+            return;
+            }
 
-      const data = await response.json();
-      const formatted = {};
-      if (Array.isArray(data.data)) {
-        data.data.forEach((item) => {
-          formatted[item.tanggalMasuk] = {
-            status: getStatusFromIndikator(item.indikatorKehadiran),
-          };
-        });
-        setAttendanceData(formatted);
-      } else {
-        setAttendanceData({});
-      }
-    } catch (err) {
-      console.error("❌ Error fetch kehadiran:", err);
-      Alert.alert(i18n.t("failed"), i18n.t("attendance_fetch_failed"));
-    }
-  };
+            const response = await fetch(${BASE_URL}kehadiran/currentlogged, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                idKaryawan: user.username,
+            }),
+            });
 
-  const bulanList = [
-    "Januari",
-    "Februari",
-    "Maret",
-    "April",
-    "Mei",
-    "Juni",
-    "Juli",
-    "Agustus",
-    "September",
-    "Oktober",
-    "November",
-    "Desember",
-  ];
+            const data = await response.json();
+            // console.log("✅ Kehadiran data:", data);
 
-  const tahunList = Array.from({ length: 100 }, (_, i) =>
-    (2001 + i).toString()
-  ); // 2020 - 2030
+            // Cek kalau isinya array
+            if (Array.isArray(data.data)) {
+            const formatted = {};
+            data.data.forEach((item) => {
+                formatted[item.tanggalMasuk] = {
+                status: getStatusFromIndikator(item.indikatorKehadiran),
+                };
+            });
+             console.log("✅ formatted data", formatted); // ✔ buat debugging
+            setAttendanceData(formatted); // ✅ baru ini nge-set state
+            } else {
+            setAttendanceData({});
+            }
 
-  const toggleFilter = (status) => {
-    setActiveFilters((prev) =>
-      prev.includes(status)
-        ? prev.filter((s) => s !== status)
-        : [...prev, status]
-    );
-  };
-  const filteredMarkedDates = Object.keys(attendanceData).reduce(
-    (acc, date) => {
-      const entry = attendanceData[date];
-      if (!entry) return acc;
+        } catch (err) {
+            console.error("❌ Error fetch kehadiran:", err);
+            Alert.alert("Gagal", "Tidak bisa memuat data kehadiran.");
+        }
+        };
 
-      const status = entry.status;
 
-      if (activeFilters.length === 0 || activeFilters.includes(status)) {
+
+    const bulanList = [
+        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    ];
+
+    const tahunList = Array.from({ length: 100 }, (_, i) => (2001 + i).toString()); // 2020 - 2030
+
+    const toggleFilter = (status) => {
+        setActiveFilters((prev) =>
+        prev.includes(status)
+            ? prev.filter((s) => s !== status)
+            : [...prev, status]
+        );
+    };
+    const filteredMarkedDates = Object.keys(attendanceData).reduce((acc, date) => {
+    const entry = attendanceData[date];
+    if (!entry) return acc;
+
+    const status = entry.status;
+
+    if (activeFilters.length === 0 || activeFilters.includes(status)) {
         acc[date] = {
-          customStyles: {
+        customStyles: {
             container: {
-              backgroundColor: getStatusBackgroundColor(status),
-              borderRadius: 6,
+            backgroundColor: getStatusBackgroundColor(status),
+            borderRadius: 6,
             },
             text: {
-              color: getStatusTextColor(status),
-              fontWeight: "600",
+            color: getStatusTextColor(status),
+            fontWeight: "600",
             },
-          },
+        },
         };
-      }
+    }
 
-      return acc;
-    },
-    {}
-  );
+    return acc;
+    }, {});
 
-  useEffect(() => {
-    fetchKehadiranByMonth();
-  }, []);
 
-  return (
-    <>
-      <Header title={i18n.t("calendar_title")} hideBack={true} />
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <Text style={styles.dateLabel}>
-              {selectedMonth} {selectedYear}
-            </Text>
 
-            <View style={styles.rightActions}>
-              <TouchableOpacity
-                onPress={() => setShowDateModal(true)}
-                style={styles.iconBtn}
-              >
-                <MaterialIcons name="calendar-month" size={24} color="#fff" />
-              </TouchableOpacity>
+    useEffect(() => {
+        fetchKehadiranByMonth();
+    }, []);
+
+
+    return (
+    <SafeAreaView style={styles.container}>
+      <ImageBackground
+        source={require("../../assets/bg_navbar.png")}
+        style={styles.imageHeader}
+        resizeMode="cover"
+      >
+        <View style={styles.headerRow}>
+          <View style={{ width: 24 }} />
+          <Text style={styles.headerTitle}>Kalender</Text>
+          <View style={{ width: 24 }} />
+        </View>
+      </ImageBackground>
+
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <Text style={styles.dateLabel}>
+            {selectedMonth} {selectedYear}
+          </Text>
+
+          <View style={styles.rightActions}>
+            <TouchableOpacity
+              onPress={() => setShowDateModal(true)}
+              style={styles.iconBtn}
+            >
+              <MaterialIcons name="calendar-month" size={24} color="#fff" />
+            </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.checkinBtn}
@@ -243,202 +230,224 @@ export default function KalenderScreen() {
                   try {
                     const current = await getData("lastLogin");
                     if (!current?.username) {
-                      Alert.alert(i18n.t("error"), i18n.t("login_data_not_found"));
+                      Alert.alert("Error", "Data login tidak ditemukan.");
                       return;
                     }
 
+                    // Cek status absen duluan
+                    const response = await fetch(${BASE_URL}kehadiran/currenthadir, {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        idKaryawan: current.username,
+                      }),
+                    });
+
+                    const resJson = await response.json();
+                    console.log("✅ Response:", resJson);
+
+                    if (resJson.data?.masukAbsen !== null) {
+                      Alert.alert("Info", "Anda sudah melakukan check-in hari ini.");
+                      return;
+                    }
+
+                    // Cek waktu
                     const now = new Date();
                     const jam = now.getHours();
                     const menit = now.getMinutes();
 
                     if (jam < 6) {
-                      Alert.alert(i18n.t("too_early"));
+                      Alert.alert("Terlalu pagi!", "Check-in hanya bisa dilakukan mulai jam 06:00 pagi.");
                       return;
-                    }
-                    if (jam > 9 || (jam === 9 && menit > 0)) {
-                      Alert.alert(i18n.t("too_late"));
-                      return;
-                    }
-
-                    const response = await fetch(`${BASE_URL}kehadiran/currenthadir`, {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ idKaryawan: current.username }),
-                    });
-
-                    const resJson = await response.json();
-                    if (resJson.data !== null) {
-                      Alert.alert(i18n.t("already_checked_in"));
-                      return;
-                    }
-                    
-                    if (jam < 6) {
-                        Alert.alert("Terlalu pagi!", "Check-in hanya bisa dilakukan mulai jam 06:00 pagi.");
-                        return;
                     }
 
                     if (jam > 9 || (jam === 9 && menit > 0)) {
-                        Alert.alert("Terlambat!", "Check-in hanya bisa dilakukan sebelum jam 09:00.");
-                        return;
+                      Alert.alert("Terlambat!", "Check-in hanya bisa dilakukan sebelum jam 09:00.");
+                      return;
                     }
 
-                    // Lolos semua validasi, navigasi ke halaman Check-in
+                    // Lolos semua validasi
                     navigation.navigate("Checkin");
                   } catch (err) {
-                    Alert.alert(i18n.t("failed"), i18n.t("checkin_failed"));
+                    console.error("❌ Gagal fetch atau parsing:", err);
+                    Alert.alert("Gagal", "Terjadi kesalahan saat memproses check-in.");
                   }
                 }}
               >
-                <Text style={styles.checkBtnText}>{i18n.t("check_in")}</Text>
+                <Text style={styles.checkBtnText}>Check-in</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.checkoutBtn}
-                onPress={async () => {
-                  try {
-                    const current = await getData("lastLogin");
-                    if (!current?.username) {
-                      Alert.alert(i18n.t("error"), i18n.t("login_data_not_found"));
-                      return;
-                    }
 
-                    const now = new Date();
-                    const jam = now.getHours();
 
-                    if (jam < 16) {
-                      Alert.alert(i18n.t("not_time_yet"));
-                      return;
-                    }
 
-                    const menit = now.getMinutes();
-                    // Cek status absen dari API
-                    const response = await fetch(`${BASE_URL}kehadiran/currenthadir`, {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ idKaryawan: current.username }),
-                    });
-
-                    const resJson = await response.json();
-                    const { masukAbsen, keluarAbsen, indikatorKehadiran } = resJson.data;
-
-                    if (indikatorKehadiran === 0) {
-                      Alert.alert(i18n.t("you_are_alpa"));
-                      return;
-                    }
-
-                    if (masukAbsen === null) {
-                      Alert.alert(i18n.t("not_checked_in"));
-                      return;
-                    }
-
-                    if (keluarAbsen !== null) {
-                      Alert.alert(i18n.t("already_checked_out"));
-                      return;
-                    }
-
-                    if (keluarAbsen === null && jam < 16) {
-                        Alert.alert("Belum waktunya!", "Check-out hanya bisa dilakukan setelah jam 16:00.");
-                        return;
-                    }
-
-                    if(keluarAbsen !== null && jam > 16){
-                        Alert.alert("Info", "Mo");
-                        return;
-                    }
-
-                    // Lolos semua validasi, lanjut ke halaman Checkout
-                    navigation.navigate("Checkout");
-                  } catch (err) {
-                    Alert.alert(i18n.t("failed"), i18n.t("checkout_failed"));
+            <TouchableOpacity
+              style={styles.checkoutBtn}
+              onPress={async () => {
+                try {
+                  const current = await getData("lastLogin");
+                  if (!current?.username) {
+                    Alert.alert("Error", "Data login tidak ditemukan.");
+                    return;
                   }
-                }}
-              >
-                <Text style={styles.checkBtnText}>{i18n.t("check_out")}</Text>
-              </TouchableOpacity>
-            </View>
+
+                  const response = await fetch(${BASE_URL}kehadiran/currenthadir, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      idKaryawan: current.username,
+                    }),
+                  });
+
+                  const resJson = await response.json();
+                  console.log("✅ Response:", resJson);
+
+                  if (!resJson.data) {
+                    Alert.alert("Info", "Anda sudah terlambat.");
+                    return;
+                  }
+
+                  const { masukAbsen, keluarAbsen, indikatorKehadiran } = resJson.data;
+
+                  if (indikatorKehadiran === 0) {
+                    Alert.alert("Info", "Anda sudah tercatat alpa.");
+                    return;
+                  }
+
+                  if (masukAbsen === null) {
+                    Alert.alert("Info", "Anda belum melakukan check-in.");
+                    return;
+                  }
+
+                  if (keluarAbsen !== null) {
+                    Alert.alert("Info", "Anda sudah melakukan check-out.");
+                    return;
+                  }
+
+                  const now = new Date();
+                  const jam = now.getHours();
+
+                  if (jam < 16) {
+                    Alert.alert("Belum waktunya!", "Check-out hanya bisa dilakukan setelah jam 16:00.");
+                    return;
+                  }
+
+                  // Lolos validasi
+                  navigation.navigate("Checkout");
+                } catch (err) {
+                  console.error("❌ Gagal fetch atau parsing:", err);
+                  Alert.alert("Gagal", "Terjadi kesalahan saat memproses check-out.");
+                }
+              }}
+            >
+              <Text style={styles.checkBtnText}>Check-out</Text>
+            </TouchableOpacity>
           </View>
         </View>
+      </View>
+      <ScrollView>
+        <Calendar
+        key={currentDate}
+        current={currentDate}
+        markingType="custom"
+        markedDates={filteredMarkedDates}
+        onDayPress={(day) => setSelectedDate(day.dateString)}
+        theme={{
+            backgroundColor: "#fff",
+            calendarBackground: "#fff",
+            dayTextColor: "rgba(30, 30, 30, 0.8)",
+            todayTextColor: "#1E3668",
+            selectedDayBackgroundColor: "#1E3668",
+            selectedDayTextColor: "#fff",
+            textDisabledColor: "rgba(0,0,0,0.1)",
+            monthTextColor: "#1E3668",
+            arrowColor: "#1E3668",
+            textDayFontFamily: "Poppins_500Medium",
+            textMonthFontFamily: "Poppins_600SemiBold",
+            textDayHeaderFontFamily: "Poppins_500Medium",
+            textDayFontSize: 15,
+            textMonthFontSize: 17,
+            textDayHeaderFontSize: 13,
+        }}
+        />
 
-        <ScrollView>
-          <Calendar
-            key={currentDate}
-            current={currentDate}
-            markingType="custom"
-            markedDates={filteredMarkedDates}
-            onDayPress={(day) => setSelectedDate(day.dateString)}
-            theme={{ /* ...your theme */ }}
-          />
 
-          <View style={styles.legendContainer}>
-            {["Hadir", "Alpa", "Cuti", "IMP", "IDL"].map((status) => (
-              <View key={status} style={styles.legendItem}>
-                <View
-                  style={[styles.legendColor, { backgroundColor: getStatusColor(status) }]}
-                />
-                <Text style={styles.legendLabel}>{i18n.t(`legend_${status.toLowerCase()}`)}</Text>
-              </View>
-            ))}
-          </View>
-
-          {selectedDate && attendanceData[selectedDate] && (
-            <View style={styles.detailCard}>
-              <Text style={styles.detailText}>
-                {i18n.t("status_on_date", {
-                  date: selectedDate,
-                  status: i18n.t(`legend_${attendanceData[selectedDate].status.toLowerCase()}`)
-                })}
-              </Text>
+        <View style={styles.legendContainer}>
+          {["Hadir", "Alpa", "Cuti", "IMP", "IDL"].map((status) => (
+            <View key={status} style={styles.legendItem}>
+              <View
+                style={[
+                  styles.legendColor,
+                  { backgroundColor: getStatusColor(status) },
+                ]}
+              />
+              <Text style={styles.legendLabel}>{status}</Text>
             </View>
-          )}
-        </ScrollView>
+          ))}
+        </View>
 
-        <Navbar />
+        {selectedDate && attendanceData[selectedDate] && (
+        <View style={styles.detailCard}>
+            <Text style={styles.detailText}>
+            Tanggal {selectedDate} - Status: {attendanceData[selectedDate].status}
+            </Text>
+        </View>
+        )}
 
-        <Modal visible={showDateModal} transparent animationType="slide">
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContainer}>
-              <Text style={styles.modalTitle}>{i18n.t("month_year_picker")}</Text>
+      </ScrollView>
 
-              <Text style={styles.modalSubTitle}>{i18n.t("month")}</Text>
-              <Picker
-                selectedValue={selectedMonth}
-                style={styles.picker}
-                onValueChange={(itemValue) => setSelectedMonth(itemValue)}
-              >
-                {bulanList.map((bulan) => (
-                  <Picker.Item key={bulan} label={bulan} value={bulan} />
-                ))}
-              </Picker>
+      <Navbar />
 
-              <Text style={styles.modalSubTitle}>{i18n.t("year")}</Text>
-              <Picker
-                selectedValue={selectedYear}
-                style={styles.picker}
-                onValueChange={(itemValue) => setSelectedYear(itemValue)}
-              >
-                {tahunList.map((tahun) => (
-                  <Picker.Item key={tahun} label={tahun} value={tahun} />
-                ))}
-              </Picker>
+      <Modal visible={showDateModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Pilih Bulan & Tahun</Text>
 
-              <TouchableOpacity
-                onPress={() => {
-                  const monthNumber = getMonthIndex(selectedMonth).toString().padStart(2, "0");
-                  const newDate = `${selectedYear}-${monthNumber}-01`;
-                  setCurrentDate(newDate);
-                  setShowDateModal(false);
-                }}
-                style={styles.closeModalBtn}
-              >
-                <Text style={{ color: "#fff", fontWeight: "bold" }}>{i18n.t("save")}</Text>
-              </TouchableOpacity>
-            </View>
+            <Text style={styles.modalSubTitle}>Bulan</Text>
+            <Picker
+              selectedValue={selectedMonth}
+              style={styles.picker}
+              onValueChange={(itemValue) => setSelectedMonth(itemValue)}
+            >
+              {bulanList.map((bulan) => (
+                <Picker.Item key={bulan} label={bulan} value={bulan} />
+              ))}
+            </Picker>
+
+            <Text style={styles.modalSubTitle}>Tahun</Text>
+            <Picker
+              selectedValue={selectedYear}
+              style={styles.picker}
+              onValueChange={(itemValue) => setSelectedYear(itemValue)}
+            >
+              {tahunList.map((tahun) => (
+                <Picker.Item key={tahun} label={tahun} value={tahun} />
+              ))}
+            </Picker>
+
+            <TouchableOpacity
+              onPress={() => {
+                const monthNumber = getMonthIndex(selectedMonth)
+                  .toString()
+                  .padStart(2, "0");
+                const newDate = ${selectedYear}-${monthNumber}-01;
+                setCurrentDate(newDate);
+                setShowDateModal(false);
+              }}
+              style={styles.closeModalBtn}
+            >
+              <Text style={{ color: "#fff", fontWeight: "bold" }}>Simpan</Text>
+            </TouchableOpacity>
           </View>
-        </Modal>
-      </SafeAreaView>
-    </>
+        </View>
+      </Modal>
+    </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
@@ -459,7 +468,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     textAlign: "center",
     flex: 1,
-    paddingTop: 15,
+    paddingTop: 15
   },
   header: {
     padding: 16,

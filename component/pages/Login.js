@@ -13,8 +13,58 @@ import { MaterialIcons } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../backbone/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getServerIP } from "../backbone/ApiConfig";
-import i18n from "../backbone/i18n"; 
+import BASE_URL from "../backbone/Constant";
+import * as Notifications from "expo-notifications";
+import * as Device from "expo-device";
+// Fungsi daftar token dan kirim ke backend
+const registerAndSendToken = async (npk) => {
+  try {
+    const token = await registerForPushNotificationAsync();
+    if (!token) return;
+
+    console.log("📱 Token dapet:", token);
+    console.log(npk);
+
+    const res = await fetch(`${BASE_URL}token/register-token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        idKaryawan: npk,
+        token: token
+      }),
+    });
+
+    const result = await res.json();
+    console.log("📬 Respon server:", result);
+  } catch (err) {
+    console.error("❌ Gagal kirim token:", err);
+  }
+};
+
+// Fungsi ambil permission notifikasi dan dapetin token
+async function registerForPushNotificationAsync() {
+  let token;
+  if (Device.isDevice) {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (finalStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== "granted") {
+      alert("❌ Izin notifikasi ditolak!");
+      return null;
+    }
+
+    token = (await Notifications.getExpoPushTokenAsync()).data;
+  } else {
+    alert("📵 Jalankan di HP asli ya bro!");
+  }
+
+  return token;
+}
 
 const Login = ({ navigation }) => {
   const { login } = useContext(AuthContext);
@@ -48,21 +98,21 @@ const Login = ({ navigation }) => {
         }),
       });
 
-      if (remember) {
-        await AsyncStorage.setItem(
-          "lastLogin",
-          JSON.stringify({ username, password })
-        );
-      } else {
-        await AsyncStorage.removeItem("lastLogin");
-      }
-
       const result = await response.json();
+      console.log(result.data.npk);
 
       if (result.result === 200) {
-        await login(result.data);
+        setUser(result.data);
 
-        console.log("data abis log", result.data);
+        if (remember) {
+          await AsyncStorage.setItem(
+            "lastLogin",
+            JSON.stringify({ username, password })
+          );
+        } else {
+          await AsyncStorage.removeItem("lastLogin");
+        }
+        await registerAndSendToken(username);
 
         Toast.show({
           type: "success",
@@ -83,8 +133,8 @@ const Login = ({ navigation }) => {
     } catch (error) {
       Toast.show({
         type: "error",
-        text1: i18n.t("server_error"),
-        text2: i18n.t("server_unreachable"),
+        text1: "Kesalahan Server",
+        text2: "Tidak dapat terhubung ke server: " + error,
       });
       console.error(error);
     }

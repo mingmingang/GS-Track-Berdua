@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1026044429893",
+    "project_id": "device-streaming-4f4d4960",
+    "storage_bucket": "device-streaming-4f4d4960.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1026044429893:android:31e4aa346c6774b765852c",
+        "android_client_info": {
+          "package_name": "id.co.astra.polytechnic.GSTrackMobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWRmd93OwKmGCQTUfkONSvMo2ZKBQsk1Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

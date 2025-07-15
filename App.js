@@ -59,6 +59,11 @@ import Kalender from "./component/pages/Kalender";
 import Alamat from "./component/pages/Profile/AlamatAdd";
 import KehadiranScreen from "./component/pages/Kehadiran/Index";
 import CameraScreen from "./component/pages/Camera";
+import CutiAtasanScreen from "./component/pages/Cuti/atasan/Index";
+import ApprovalScreen from "./component/pages/Cuti/atasan/Approval";
+import DaftarDokumenScreen from "./component/pages/Dokumen/DaftarDokumen";
+import DokumenFolderScreen from "./component/pages/Dokumen/Index";
+
 
 const Stack = createNativeStackNavigator();
 SplashScreen.preventAutoHideAsync();
@@ -99,6 +104,11 @@ const AppStack = () => (
       name="Dokumen"
       component={Dokumen}
       options={{ animation: "fade", headerShown: false }}
+    />
+     <Stack.Screen
+      name="OpenFolder"
+      component={DaftarDokumenScreen}
+      options={{ animation: "slide_from_right", headerShown: false }}
     />
     <Stack.Screen
       name="Kalender"
@@ -162,11 +172,25 @@ const AppStack = () => (
       component={PembatalanCutiScreen}
       options={{ animation: "slide_from_right", headerShown: false }}
     />
+
     <Stack.Screen
       name="LihatCuti"
       component={DetailCutiScreen}
       options={{ animation: "slide_from_right", headerShown: false }}
     />
+
+     <Stack.Screen
+      name="ApproveCuti"
+      component={ApprovalScreen}
+      options={{ animation: "slide_from_right", headerShown: false }}
+    />
+
+    <Stack.Screen
+      name="CutiAtasan"
+      component={CutiAtasanScreen}
+      options={{ animation: "slide_from_right", headerShown: false }}
+    />
+
     <Stack.Screen
       name="IDL"
       component={IDLScreen}

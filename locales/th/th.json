@@ -289,6 +289,10 @@
   "leave_status_pending": "ยังไม่เสร็จสิ้น",
   "leave_status_pending_desc": "หมายเหตุ: สามารถยกเลิกการลาได้ เนื่องจากยังไม่ถูกใช้",
   "leave_status_waiting": "รอการอนุมัติ",
-  "leave_status_waiting_desc": "หมายเหตุ: การลายังรอการอนุมัติจากหัวหน้าอยู่"
+  "leave_status_waiting_desc": "หมายเหตุ: การลายังรอการอนุมัติจากหัวหน้าอยู่",
+  "cuti_status.ditolak": "ถูกปฏิเสธ"
+  
+
+
 
 }

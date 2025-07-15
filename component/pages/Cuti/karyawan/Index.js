@@ -9,6 +9,8 @@ import { fetchJatahCutiAPI, fetchCutiListAPI } from "../../../backbone/api";
 import { formatTanggal, getTanggalRange } from "../../../part/Date";
 import styles from "../../../styles/Cuti/CutiStyles";
 import i18n from "../../../backbone/i18n";
+import { useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 
 const CutiScreen = ({ route }) => {
   const navigation = useNavigation();
@@ -43,37 +45,41 @@ const CutiScreen = ({ route }) => {
     }
   };
 
-  useEffect(() => {
-    if (!userId) return;
+  useFocusEffect(
+    useCallback(() => {
+      if (!userId) return;
 
-    const fetchData = async () => {
-      setIsLoading(true); // start loading
-      try {
-        const data = await fetchCutiListAPI(
-          userId,
-          selectedJenis,
-          selectedStatus
-        );
-        const dataFilteredByYear = data.filter((cuti) => {
-          const tahunAwal = new Date(cuti.tanggalAwal).getFullYear();
-          return tahunAwal.toString() === selectedYear;
-        });
-        setCutiList(dataFilteredByYear);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoading(false);
+      const fetchData = async () => {
+        setIsLoading(true);
+        try {
+          const data = await fetchCutiListAPI(
+            userId,
+            selectedJenis,
+            selectedStatus
+          );
+          const dataFilteredByYear = data.filter((cuti) => {
+            const tahunAwal = new Date(cuti.tanggalAwal).getFullYear();
+            return tahunAwal.toString() === selectedYear;
+          });
+          setCutiList(dataFilteredByYear);
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchData();
+    }, [userId, selectedJenis, selectedStatus, selectedYear])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (selectedYear) {
+        fetchJatahCuti();
       }
-    };
-
-    fetchData();
-  }, [userId, selectedJenis, selectedStatus, selectedYear]);
-
-  useEffect(() => {
-    if (cutiList.length > 0 && selectedYear) {
-      fetchJatahCuti();
-    }
-  }, [cutiList, selectedYear]);
+    }, [selectedYear])
+  );
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
@@ -85,6 +91,8 @@ const CutiScreen = ({ route }) => {
       case "menunggu":
         return "#2196F3";
       case "dibatalkan":
+        return "red";
+      case "ditolak":
         return "red";
       default:
         return "#9E9E9E";
@@ -98,6 +106,7 @@ const CutiScreen = ({ route }) => {
     "Belum Terlaksana",
     "Menunggu Persetujuan",
     "Dibatalkan",
+    "Ditolak",
   ];
 
   return (
@@ -273,7 +282,8 @@ const CutiScreen = ({ route }) => {
                   </Text>
                 </View>
                 {item.status !== "Terlaksana" &&
-                  item.status !== "Dibatalkan" && (
+                  item.status !== "Dibatalkan" && 
+                  item.status !== "Ditolak" && (
                     <TouchableOpacity
                       onPress={() =>
                         navigation.navigate("PembatalanCuti", {

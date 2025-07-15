@@ -21,7 +21,6 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 const TambahIDLScreen = () => {
   const navigation = useNavigation();
 
-  // Kegiatan dropdown state
   const [openKegiatan, setOpenKegiatan] = useState(false);
   const [jenisKegiatan, setJenisKegiatan] = useState(null);
   const [itemsKegiatan, setItemsKegiatan] = useState([

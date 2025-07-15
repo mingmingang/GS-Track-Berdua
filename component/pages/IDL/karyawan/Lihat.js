@@ -7,13 +7,135 @@ import {
   ImageBackground,
   TouchableOpacity,
 } from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation, useRoute } from "@react-navigation/native";
+
+const formatDateTime = (tanggal, waktu) => {
+  if (!tanggal || !waktu) return "-";
+  const date = new Date(`${tanggal}T${waktu}`);
+
+  const tanggalPart = date.toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  const jamPart = date.toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  return `${tanggalPart} - ${jamPart}`;
+};
+
+const formatDateTimeRange = (tanggal1, waktu1, tanggal2, waktu2) => {
+  if (!tanggal1 || !waktu1 || !tanggal2 || !waktu2) return "-";
+
+  const date1 = new Date(`${tanggal1}T${waktu1}`);
+  const date2 = new Date(`${tanggal2}T${waktu2}`);
+
+  const isSameDay =
+    date1.getFullYear() === date2.getFullYear() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate();
+
+  if (isSameDay) {
+    const hariTanggal = date1.toLocaleDateString("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
+    const jam1 = date1.toLocaleTimeString("id-ID", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const jam2 = date2.toLocaleTimeString("id-ID", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    return `${hariTanggal} - ${jam1} - ${jam2}`;
+  } else {
+    const tanggal1Str = date1.toLocaleDateString("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    const tanggal2Str = date2.toLocaleDateString("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    return `${tanggal1Str} - ${tanggal2Str}`;
+  }
+};
+
+const formatTanggal = (dateTimeString) => {
+  if (!dateTimeString) return "-";
+  const date = new Date(dateTimeString);
+
+  const tanggalPart = date.toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  const jamPart = date.toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  return `${tanggalPart} - ${jamPart}`;
+};
+
+const splitLokasi = (lokasi) => {
+  if (!lokasi) return { nama: "-", alamat: "-" };
+  const [nama, ...alamatParts] = lokasi.split(" - ");
+  return {
+    nama: nama?.trim() || "-",
+    alamat: alamatParts.join(" - ").trim() || "-",
+  };
+};
+
+const DetailRow = ({ label, value }) => (
+  <View style={styles.detailRow}>
+    <Text style={styles.label}>{label}</Text>
+    {typeof value === "string" ? (
+      <Text style={styles.value}>{value}</Text>
+    ) : (
+      <View style={styles.value}>{value}</View>
+    )}
+  </View>
+);
 
 export default function DetailIDLScreen() {
   const navigation = useNavigation();
+  const route = useRoute();
+  const { idlData } = route.params || {};
+
+  if (!idlData) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>Data IDL tidak ditemukan.</Text>
+      </View>
+    );
+  }
+
+  const tanggalDinasLuar = formatDateTimeRange(
+    idlData.tanggalBerangkat,
+    idlData.jamBerangkat,
+    idlData.tanggalKembali,
+    idlData.jamKembali
+  );
+
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       {/* Header */}
       <ImageBackground
         source={require("../../../../assets/bg_navbar.png")}
@@ -27,137 +149,135 @@ export default function DetailIDLScreen() {
           style={{ paddingLeft: 20 }}
           onPress={() => navigation.goBack()}
         />
-        <Text style={styles.headerText}>Detail Dinas Luar</Text>
+        <Text style={styles.headerText}>Detail Izin Dinas Luar</Text>
         <View style={{ width: 24 }} />
       </ImageBackground>
 
-      {/* Status IDL */}
-      <View style={styles.statusBox}>
-        <View style={styles.statusLeft}>
-          <View style={styles.statusIcon}>
-            <Ionicons name="information-circle" size={20} color="#6B7280" />
+      <ScrollView>
+        {/* Status */}
+        <View style={styles.statusBox}>
+          <View style={styles.statusLeft}>
+            <Ionicons
+              name="information-circle"
+              size={20}
+              color="#6B7280"
+              style={{ marginRight: 8 }}
+            />
+            <Text style={styles.statusLabel}>Status IDL</Text>
           </View>
-          <Text style={styles.statusLabel}>Status IDL</Text>
-        </View>
-        <View style={styles.statusBadge}>
-          <Text style={styles.statusText}>Menunggu Persetujuan</Text>
-        </View>
-      </View>
-
-      {/* Detail Izin Dinas Luar */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Detail Izin Dinas Luar</Text>
-
-        <View style={styles.detailRow}>
-          <Text style={styles.label}>No. Pengajuan</Text>
-          <Text style={styles.value}>IDL202503013458</Text>
+          <View
+            style={[
+              styles.statusBadge,
+              { backgroundColor: idlData.labelColor },
+            ]}
+          >
+            <Text style={styles.statusText}>{idlData.status}</Text>
+          </View>
         </View>
 
-        <View style={styles.detailRow}>
-          <Text style={styles.label}>NPK Karyawan</Text>
-          <Text style={styles.value}>007970</Text>
+        {/* Detail */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Detail Izin Dinas Luar</Text>
+          <DetailRow label="No. Pengajuan" value={idlData.id} />
+          <DetailRow label="NPK Karyawan" value={idlData.npk} />
+          <DetailRow label="Nama Karyawan" value={idlData.nama} />
+          <DetailRow label="Kegiatan" value={idlData.alasan} />
+          <DetailRow
+            label="Tanggal Pengajuan"
+            value={formatTanggal(idlData.tanggalPengajuan)}
+          />
+          <DetailRow
+            label="Waktu Berangkat"
+            value={formatDateTime(
+              idlData.tanggalBerangkat,
+              idlData.jamBerangkat
+            )}
+          />
+          <DetailRow
+            label="Waktu Kembali"
+            value={formatDateTime(idlData.tanggalKembali, idlData.jamKembali)}
+          />
+          <DetailRow label="Tanggal Dinas Luar" value={tanggalDinasLuar} />
+
+          {idlData.berkasLampiran && (
+            <DetailRow
+              label="File Pendukung"
+              value={
+                <TouchableOpacity>
+                  <Text style={styles.linkText}>Lihat File</Text>
+                </TouchableOpacity>
+              }
+            />
+          )}
         </View>
 
-        <View style={styles.detailRow}>
-          <Text style={styles.label}>Nama Karyawan</Text>
-          <Text style={styles.value}>Amalia Tresna</Text>
-        </View>
+        {/* Lokasi */}
+        {idlData.lokasi1 && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Lokasi 1</Text>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>
+                {splitLokasi(idlData.lokasi1).nama}
+              </Text>
+              <Text style={styles.value}>
+                {splitLokasi(idlData.lokasi1).alamat}
+              </Text>
+            </View>
+          </View>
+        )}
+        {idlData.lokasi2 && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Lokasi 2</Text>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>
+                {splitLokasi(idlData.lokasi2).nama}
+              </Text>
+              <Text style={styles.value}>
+                {splitLokasi(idlData.lokasi2).alamat}
+              </Text>
+            </View>
+          </View>
+        )}
+        {idlData.lokasi3 && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Lokasi 3</Text>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>
+                {splitLokasi(idlData.lokasi3).nama}
+              </Text>
+              <Text style={styles.value}>
+                {splitLokasi(idlData.lokasi3).alamat}
+              </Text>
+            </View>
+          </View>
+        )}
 
-        <View style={styles.detailRow}>
-          <Text style={styles.label}>Kegiatan</Text>
-          <Text style={styles.value}>Gemba</Text>
-        </View>
-
-        <View style={styles.detailRow}>
-          <Text style={styles.label}>Tanggal Pengajuan</Text>
-          <Text style={styles.value}>Kamis, 15 Mei 2025</Text>
-        </View>
-
-        <View style={styles.detailRow}>
-          <Text style={styles.label}>Waktu Berangkat</Text>
-          <Text style={styles.value}>Senin, 19 Mei 2025 - 10.00</Text>
-        </View>
-
-        <View style={styles.detailRow}>
-          <Text style={styles.label}>Waktu Kembali</Text>
-          <Text style={styles.value}>Selasa, 20 Mei 2025 - 15.00</Text>
-        </View>
-
-        <View style={styles.detailRow}>
-          <Text style={styles.label}>Tanggal Dinas Luar</Text>
-          <Text style={styles.value}>19 Mei 2025 - 20 Mei 2025</Text>
-        </View>
-
-        <View style={styles.detailRow}>
-          <Text style={styles.label}>File Pendukung</Text>
-          <TouchableOpacity>
-            <Text style={styles.linkText}>Lihat File</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Lokasi 1 */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Lokasi 1</Text>
-        <View style={styles.detailRow}>
-          <Text style={styles.label}>Politeknik Astra</Text>
-          <Text style={styles.valueRight}>
-            Cikarang Selatan, Kab Bekasi, Jawa Barat
-          </Text>
-        </View>
-      </View>
-
-      {/* Lokasi 2 */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Lokasi 2</Text>
-        <View style={styles.detailRow}>
-          <Text style={styles.label}>Astra Honda Motor</Text>
-          <Text style={styles.valueRight}>
-            Pasirranji, Kec. Cikarang Pusat, Kab bekasi, Jawa Barat
-          </Text>
-        </View>
-      </View>
-
-      {/* Lokasi 3 */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Lokasi 3</Text>
-        <View style={styles.detailRow}>
-          <Text style={styles.label}>Astra Honda Motor</Text>
-          <Text style={styles.valueRight}>Cibatu, Kab Bekasi, Jawa Barat</Text>
-        </View>
-      </View>
-
-      {/* Keterangan Tambahan */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Keterangan Tambahan</Text>
-        <View style={styles.detailRow}>
-          <Text style={styles.label}>Keterangan</Text>
-          <Text style={styles.value}>Gemba Supplier di Politeknik Astra</Text>
-        </View>
-      </View>
-    </ScrollView>
+        {/* Keterangan Tambahan */}
+        {idlData.keterangan && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Keterangan Tambahan</Text>
+            <DetailRow label="Keterangan" value={idlData.keterangan} />
+          </View>
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F7FA",
-  },
+  container: { flex: 1, backgroundColor: "#F5F7FA" },
   header: {
-    backgroundColor: "#4F46E5",
+    backgroundColor: "#1E2D56",
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 50,
+    paddingTop: 30,
     height: 100,
     justifyContent: "space-between",
-    paddingHorizontal: 16,
   },
   headerText: {
     color: "#fff",
     fontSize: 18,
-    fontWeight: "bold",
-    fontFamily: "Poppins_700Bold",
+    fontFamily: "Poppins_600SemiBold",
   },
   statusBox: {
     backgroundColor: "#E5E7EB",
@@ -172,25 +292,21 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  statusIcon: {
-    marginRight: 8,
-  },
   statusLabel: {
     color: "#6B7280",
-    fontWeight: "600",
-    fontFamily: "Poppins_600SemiBold",
+    fontWeight: "bold",
+    fontFamily: "Poppins_700Bold",
   },
   statusBadge: {
-    backgroundColor: "#2196F3",
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
   statusText: {
-    color: "white",
-    fontWeight: "600",
-    fontSize: 12,
-    fontFamily: "Poppins_600SemiBold",
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 13,
+    fontFamily: "Poppins_700Bold",
   },
   card: {
     backgroundColor: "#fff",
@@ -205,9 +321,9 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontWeight: "bold",
-    marginBottom: 16,
+    marginBottom: 12,
     fontSize: 16,
-    color: "#111827",
+    color: "#333",
     fontFamily: "Poppins_700Bold",
   },
   detailRow: {
@@ -217,9 +333,9 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   label: {
-    color: "#9CA3AF",
-    fontSize: 13,
-    fontFamily: "Poppins_400Regular",
+    color: "#A0AEC0",
+    fontSize: 14,
+    fontFamily: "Poppins_600SemiBold",
     flex: 1,
   },
   value: {
@@ -227,16 +343,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     fontFamily: "Poppins_600SemiBold",
-    width: "60%",
-    textAlign: "right",
-    numberOfLines: 1,
-  },
-  valueRight: {
-    color: "#9CA3AF",
-    fontSize: 13,
-    fontFamily: "Poppins_400Regular",
     flex: 1,
     textAlign: "right",
+    alignItems: "flex-end",
   },
   linkText: {
     color: "#3B82F6",

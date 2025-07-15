@@ -16,6 +16,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import BASE_URL from "../../backbone/Constant";
 import FilterTahun from "../../part/Filter";
 import MapView, { Marker, Callout } from "react-native-maps";
+import Header from "../../backbone/Header";
 
 const KehadiranScreen = ({ route }) => {
   const navigation = useNavigation();
@@ -35,7 +36,6 @@ const KehadiranScreen = ({ route }) => {
       return null;
     }
   };
-
 
   const getStatusFromIndikator = (indikator) => {
   switch (indikator) {
@@ -167,14 +167,9 @@ const KehadiranScreen = ({ route }) => {
   };
 
   return (
+    <>
+    <Header title="Kehadiran"/>
     <View style={styles.container}>
-      <ImageBackground source={require("../../../assets/bg_navbar.png")} style={styles.header} resizeMode="cover">
-        <Ionicons name="arrow-back" size={24} color="#fff" style={{ paddingLeft: 20 }} />
-        <Text style={styles.headerText}>Kehadiran</Text>
-        <View style={{ width: 24 }} />
-      </ImageBackground>
-
-      {/* Modal Filter Tahun */}
       <FilterTahun
         visible={yearModalVisible}
         onClose={() => setYearModalVisible(false)}
@@ -182,13 +177,10 @@ const KehadiranScreen = ({ route }) => {
         onSelectYear={(year) => setSelectedYear(year)}
       />
 
-      {/* Modal Map Lokasi */}
       {mapModalVisible && selectedLocation && (
         <Modal visible={mapModalVisible} transparent animationType="slide">
           <View style={{ flex: 1, backgroundColor: '#000000aa', justifyContent: 'center', alignItems: 'center' }}>
             <View style={{ width: '90%', height: 450, backgroundColor: 'white', borderRadius: 12, overflow: 'hidden' }}>
-              
-              {/* Legenda */}
               <View style={{ flexDirection: 'row', justifyContent: 'space-around', padding: 8, backgroundColor: '#f0f0f0' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: 'green', marginRight: 6 }} />
@@ -315,6 +307,7 @@ const KehadiranScreen = ({ route }) => {
         )}
       </ScrollView>
     </View>
+    </>
   );
 };
 
@@ -406,7 +399,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   timeText: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: "bold",
     fontFamily: "Poppins_700Bold",
   },

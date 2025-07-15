@@ -4,7 +4,7 @@ import { View, StyleSheet, Text } from 'react-native';
 const SplashScreen = ({ navigation }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigation.replace('Login'); // Pindah ke Login setelah 2 detik
+      navigation.replace('Onboarding'); // Pindah ke Login setelah 2 detik
     }, 2000);
 
     return () => clearTimeout(timer);

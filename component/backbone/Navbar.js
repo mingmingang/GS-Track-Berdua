@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import i18n from "../backbone/i18n"; // ⬅️ Tambahkan ini
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Navbar = () => {
@@ -28,7 +29,7 @@ const Navbar = () => {
           style={styles.icon}
         />
         <Text style={[styles.navText, { color: getColor("Home") }]}>
-          Beranda
+          {i18n.t("navbar_home")}
         </Text>
       </TouchableOpacity>
 
@@ -44,14 +45,14 @@ const Navbar = () => {
           style={styles.icon}
         />
         <Text style={[styles.navText, { color: getColor("Kalender") }]}>
-          Kalender
+          {i18n.t("navbar_calendar")}
         </Text>
       </TouchableOpacity>
 
       {/* Dokumen */}
       <TouchableOpacity
         style={styles.navItem}
-        onPress={() => navigation.navigate("Dokumen")} // pastikan ada screen ini
+        onPress={() => navigation.navigate("Dokumen")}
       >
         <MaterialIcons
           name="folder"
@@ -60,7 +61,7 @@ const Navbar = () => {
           style={styles.icon}
         />
         <Text style={[styles.navText, { color: getColor("Dokumen") }]}>
-          Dokumen
+          {i18n.t("navbar_document")}
         </Text>
       </TouchableOpacity>
 
@@ -76,7 +77,7 @@ const Navbar = () => {
           style={styles.icon}
         />
         <Text style={[styles.navText, { color: getColor("Profile") }]}>
-          Profil
+          {i18n.t("navbar_profile")}
         </Text>
       </TouchableOpacity>
     </View>

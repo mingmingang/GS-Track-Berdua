@@ -9,7 +9,6 @@ import {
   Platform,
   Image,
 } from "react-native";
-import CheckBox from "@react-native-community/checkbox";
 import { MaterialIcons } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
 import { AuthContext } from "../backbone/AuthContext";
@@ -17,7 +16,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import BASE_URL from "../backbone/Constant";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
-// Fungsi daftar token dan kirim ke backend
+import i18n from "../backbone/i18n";
+import { getServerIP } from "../backbone/ApiConfig";
+
+
 const registerAndSendToken = async (npk) => {
   try {
     const token = await registerForPushNotificationAsync();
@@ -68,7 +70,7 @@ async function registerForPushNotificationAsync() {
 }
 
 const Login = ({ navigation }) => {
-  const { setUser } = useContext(AuthContext);
+  const { login } = useContext(AuthContext);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
@@ -89,11 +91,10 @@ const Login = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch(BASE_URL + "karyawan/login", {
+      const ip = await getServerIP();
+      const response = await fetch(`http://${ip}:8080/karyawan/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           npk: username,
           password: password,
@@ -104,7 +105,7 @@ const Login = ({ navigation }) => {
       console.log(result.data.npk);
 
       if (result.result === 200) {
-        setUser(result.data);
+        login(result.data);
 
         if (remember) {
           await AsyncStorage.setItem(
@@ -118,8 +119,8 @@ const Login = ({ navigation }) => {
 
         Toast.show({
           type: "success",
-          text1: "Login Berhasil",
-          text2: `Selamat datang, ${username}!`,
+          text1: i18n.t("login_success"),
+          text2: i18n.t("welcome_user", { name: result.data.namaKaryawan }),
         });
 
         setTimeout(() => {
@@ -128,8 +129,8 @@ const Login = ({ navigation }) => {
       } else {
         Toast.show({
           type: "error",
-          text1: "Login Gagal",
-          text2: result.message || "Periksa kembali data Anda",
+          text1: i18n.t("login_failed"),
+          text2: result.message || i18n.t("check_credentials"),
         });
       }
     } catch (error) {
@@ -160,25 +161,22 @@ const Login = ({ navigation }) => {
           <Text style={styles.titleBold}>GS</Text> Track
         </Text>
 
-        <Text style={styles.subtitle}>
-          Silahkan masukan akun yang sudah terdaftar dan isikan dengan nama
-          pengguna dan kata sandi.
-        </Text>
+        <Text style={styles.subtitle}>{i18n.t("login_instruction")}</Text>
 
-        <Text style={styles.label}>Nama Pengguna</Text>
+        <Text style={styles.label}>{i18n.t("username_label")}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Masukan Nama Pengguna..."
+          placeholder={i18n.t("username_placeholder")}
           value={username}
           onChangeText={setUsername}
           placeholderTextColor="#999"
         />
 
-        <Text style={styles.label}>Kata Sandi</Text>
+        <Text style={styles.label}>{i18n.t("password_label")}</Text>
         <View style={styles.passwordWrapper}>
           <TextInput
             style={styles.inputPassword}
-            placeholder="Masukan Kata Sandi..."
+            placeholder={i18n.t("password_placeholder")}
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
@@ -199,25 +197,24 @@ const Login = ({ navigation }) => {
               onPress={() => setRemember(!remember)}
               style={[
                 styles.checkbox,
-                { backgroundColor: remember ? "#21376A" : "#fff" }, // 👈 buat dinamis di sini
+                { backgroundColor: remember ? "#21376A" : "#fff" },
               ]}
             >
               {remember && (
                 <MaterialIcons name="check" size={16} color="white" />
               )}
             </TouchableOpacity>
-
-            <Text style={styles.rememberText}>Ingat saya!</Text>
+            <Text style={styles.rememberText}>{i18n.t("remember_me")}</Text>
           </View>
           <TouchableOpacity
             onPress={() => navigation.navigate("ForgotPassword")}
           >
-            <Text style={styles.forgot}>Lupa kata sandi?</Text>
+            <Text style={styles.forgot}>{i18n.t("forgot_password")}</Text>
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Masuk</Text>
+          <Text style={styles.buttonText}>{i18n.t("login_button")}</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -226,6 +223,7 @@ const Login = ({ navigation }) => {
 
 export default Login;
 
+// Styles tidak perlu diubah
 const styles = StyleSheet.create({
   container: {
     flex: 1,

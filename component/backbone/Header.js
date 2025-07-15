@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ImageBackground } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 
-const Header = ({ title }) => {
+const Header = ({ title, hideBack = false }) => {
   const navigation = useNavigation();
 
   return (
@@ -12,13 +12,17 @@ const Header = ({ title }) => {
       style={styles.header}
       resizeMode="cover"
     >
-      <Ionicons
-        name="arrow-back"
-        size={24}
-        color="#fff"
-        style={{marginLeft:"15"}}
-        onPress={() => navigation.goBack()}
-      />
+      {hideBack ? (
+        <View style={{ width: 24 }} /> // space kosong jika disembunyikan
+      ) : (
+        <Ionicons
+          name="arrow-back"
+          size={24}
+          color="#fff"
+          style={{ marginLeft: 15 }}
+          onPress={() => navigation.goBack()}
+        />
+      )}
       <Text style={styles.headerText}>{title}</Text>
       <View style={{ width: 24 }} />
     </ImageBackground>

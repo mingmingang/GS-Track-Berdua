@@ -24,6 +24,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
+import { useRef } from "react";
 
 const getData = async (key) => {
   try {
@@ -34,6 +35,8 @@ const getData = async (key) => {
     return null;
   }
 };
+
+import RNPickerSelect from "react-native-picker-select";
 
 const getStatusBackgroundColor = (status) => {
   switch (status) {
@@ -113,6 +116,8 @@ export default function KalenderScreen() {
   const [currentDate, setCurrentDate] = useState("2025-07-01");
   const [showDateModal, setShowDateModal] = useState(false);
   const [attendanceData, setAttendanceData] = useState({});
+  const pickerRef = useRef();
+  const bulanPickerRef = useRef();
 
   const getStatusFromIndikator = (indikator) => {
     switch (indikator) {
@@ -441,7 +446,7 @@ export default function KalenderScreen() {
 
         <Navbar />
 
-        <Modal visible={showDateModal} transparent animationType="slide">
+        <Modal visible={showDateModal} transparent animationType="fade">
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.modalOverlay}>
               <KeyboardAvoidingView
@@ -451,43 +456,59 @@ export default function KalenderScreen() {
                 <Text style={styles.modalTitle}>Pilih Bulan & Tahun</Text>
 
                 <Text style={styles.modalSubTitle}>Bulan</Text>
-                <View
-                  style={{
-                    width: "100%",
-                    borderWidth: 1,
-                    borderColor: "#ccc",
-                    borderRadius: 8,
-                  }}
-                >
-                  <Picker
-                    selectedValue={selectedMonth}
-                    onValueChange={(itemValue) => setSelectedMonth(itemValue)}
-                    style={{ color: "#000" }}
+                <View style={{ width: "100%", borderRadius: 8 }}>
+                  <TouchableOpacity
+                    onPress={() => bulanPickerRef.current?.togglePicker(true)}
+                    style={styles.touchablePicker}
                   >
-                    {bulanList.map((bulan) => (
-                      <Picker.Item key={bulan} label={bulan} value={bulan} />
-                    ))}
-                  </Picker>
+                    <Text style={styles.touchableText}>
+                      {selectedMonth || "Pilih Bulan"}
+                    </Text>
+
+                    <RNPickerSelect
+                      ref={bulanPickerRef}
+                      onValueChange={(value) => setSelectedMonth(value)}
+                      value={selectedMonth}
+                      placeholder={{ label: "Pilih Bulan", value: null }}
+                      items={bulanList.map((bulan) => ({
+                        label: bulan,
+                        value: bulan,
+                      }))}
+                      style={hiddenPickerStyles}
+                      useNativeAndroidPickerStyle={false}
+                    />
+                  </TouchableOpacity>
                 </View>
 
                 <Text style={styles.modalSubTitle}>Tahun</Text>
                 <View
                   style={{
                     width: "100%",
-                    borderWidth: 1,
                     borderColor: "#ccc",
                     borderRadius: 8,
                   }}
                 >
-                  <Picker
-                    selectedValue={selectedYear}
-                    onValueChange={(itemValue) => setSelectedYear(itemValue)}
-                    style={{ color: "#000" }}
+                  <TouchableOpacity
+                    onPress={() => pickerRef.current?.togglePicker(true)}
+                    style={styles.touchablePicker}
                   >
-                    {tahunList.map((tahun) => (
-                      <Picker.Item key={tahun} label={tahun} value={tahun} />
-                    ))}
-                  </Picker>
+                    <Text style={styles.touchableText}>
+                      {selectedYear || "Pilih Tahun"}
+                    </Text>
+
+                    <RNPickerSelect
+                      ref={pickerRef}
+                      onValueChange={(value) => setSelectedYear(value)}
+                      value={selectedYear}
+                      placeholder={{ label: "Pilih Tahun", value: null }}
+                      items={tahunList.map((tahun) => ({
+                        label: tahun,
+                        value: tahun,
+                      }))}
+                      style={hiddenPickerStyles}
+                      useNativeAndroidPickerStyle={false}
+                    />
+                  </TouchableOpacity>
                 </View>
 
                 <TouchableOpacity
@@ -623,8 +644,9 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     width: "80%",
-    elevation: 5, // untuk Android
-    shadowColor: "#000", // untuk iOS
+
+    elevation: 5, 
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
@@ -648,6 +670,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 8,
     marginTop: 16,
+    marginBottom:20,
     alignItems: "center",
     width: "100%",
   },
@@ -656,4 +679,76 @@ const styles = StyleSheet.create({
     height: 50,
     marginBottom: 16,
   },
+  inputIOS: {
+    fontSize: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    color: "#000", // teks hitam di iOS
+    backgroundColor: "#fff",
+    marginBottom: 10,
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    color: "#000", // teks hitam di Android
+    backgroundColor: "#fff",
+    marginBottom: 10,
+  },
+  touchablePicker: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: "#fff",
+    marginBottom: 10,
+  },
+  touchableText: {
+    fontSize: 16,
+    color: "#000",
+  },
 });
+
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    color: "#000", // teks hitam di iOS
+    backgroundColor: "#fff",
+    marginBottom: 10,
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    color: "#000", // teks hitam di Android
+    backgroundColor: "#fff",
+    marginBottom: 10,
+  },
+});
+
+const hiddenPickerStyles = {
+  inputIOS: {
+    height: 0,
+    width: 0,
+    opacity: 0,
+  },
+  inputAndroid: {
+    height: 0,
+    width: 0,
+    opacity: 0,
+  },
+};

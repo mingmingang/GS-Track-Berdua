@@ -26,6 +26,7 @@ import {
 import i18n from "../../../backbone/i18n";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
+import { getServerIP } from "../../../backbone/ApiConfig";
 
 const TambahCutiScreen = () => {
   const navigation = useNavigation();
@@ -320,6 +321,39 @@ const TambahCutiScreen = () => {
           text1: "Berhasil",
           text2: "Pengajuan cuti berhasil disimpan.",
         });
+
+        const now = new Date();
+        const formattedDate = now.toLocaleString("id-ID", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+         const ip = await getServerIP();
+
+        try {
+          const notifResponse = await fetch(
+            `http://${ip}:8080/notifikasi/save`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                idKaryawan: user?.npk,
+                judulNotifikasi: "Pengajuan Cuti",
+                pesanNotifikasi: `Pengajuan cuti Anda berhasil dikirim pada ${formattedDate}.`,
+                tipeNotif: 2,
+              }),
+            }
+          );
+
+          const notifResult = await notifResponse.json();
+          console.log("Notifikasi terkirim:", notifResult);
+        } catch (notifError) {
+          console.log("Gagal mengirim notifikasi:", notifError);
+        }
+
         console.log("Before showLocalNotification()");
         await showLocalNotification();
         console.log("After showLocalNotification()");

@@ -297,6 +297,33 @@ export const fetchCutiListAPI = async (
     );
     const data = await response.json();
 
+    console.log("dataa", response)
+
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error("Gagal mengambil data cuti", error);
+    return [];
+  }
+};
+
+export const fetchCutiListAPIAtasan = async (
+  selectedJenis,
+  selectedStatus
+) => {
+  try {
+    const ip = await getServerIP();
+
+    const query = new URLSearchParams({
+      ...(selectedJenis && { tipeCuti: selectedJenis }),
+      ...(selectedStatus !== "Semua" && { status: selectedStatus }),
+    });
+
+    const response = await fetch(
+      `http://${ip}:8080/cuti/atasan?${query.toString()}`
+    );
+    const data = await response.json();
+    console.log("cuti atasana", data);
+
     return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error("Gagal mengambil data cuti", error);

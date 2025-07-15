@@ -292,6 +292,7 @@
   "leave_status_pending_desc": "Note: Leave can be cancelled because it has not been used yet.",
   "leave_status_waiting": "Waiting for Approval",
   "leave_status_waiting_desc": "Note: Leave is still waiting for supervisor approval.",
+  "cuti_status.ditolak": "Rejected"
 
   
   

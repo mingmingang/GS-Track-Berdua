@@ -19,7 +19,6 @@ import * as Device from "expo-device";
 import i18n from "../backbone/i18n";
 import { getServerIP } from "../backbone/ApiConfig";
 
-
 const registerAndSendToken = async (npk) => {
   try {
     const token = await registerForPushNotificationAsync();
@@ -33,7 +32,7 @@ const registerAndSendToken = async (npk) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         idKaryawan: npk,
-        token: token
+        token: token,
       }),
     });
 
@@ -48,7 +47,8 @@ const registerAndSendToken = async (npk) => {
 async function registerForPushNotificationAsync() {
   let token;
   if (Device.isDevice) {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
 
     if (finalStatus !== "granted") {
@@ -88,7 +88,6 @@ const Login = ({ navigation }) => {
     };
     loadLastLogin();
   }, []);
-
   const handleLogin = async () => {
     try {
       const ip = await getServerIP();
@@ -115,7 +114,32 @@ const Login = ({ navigation }) => {
         } else {
           await AsyncStorage.removeItem("lastLogin");
         }
+
+        const now = new Date();
+        const formattedDate = now.toLocaleString("id-ID", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
         await registerAndSendToken(username);
+
+        const notifResponse = await fetch(`http://${ip}:8080/notifikasi/save`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            idKaryawan: username,
+            judulNotifikasi: "Login Berhasil",
+            pesanNotifikasi: `Anda telah berhasil login pada ${formattedDate}`,
+            tipeNotif: 1,
+          }),
+        });
+
+        const notifResult = await notifResponse.json();
+        console.log(notifResult);
 
         Toast.show({
           type: "success",

@@ -28,6 +28,10 @@ import i18n from "../../../backbone/i18n";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 import { getServerIP } from "../../../backbone/ApiConfig";
+import { usePushNotif } from "../../PushNotifContext";
+import { pushNotifKeUser } from "../../notifUtils";
+import BASE_URL from "../../../backbone/Constant";
+import { sendPushNotification } from "../../ExpoClientPushNotification";
 
 const TambahCutiScreen = () => {
   const navigation = useNavigation();
@@ -164,6 +168,7 @@ const TambahCutiScreen = () => {
   };
 
   const generateNewCutiId = (lastId) => {
+    const { token } = usePushNotif();
     const now = new Date();
     const prefix = `LVR${now.getFullYear()}${String(
       now.getMonth() + 1
@@ -332,11 +337,11 @@ const TambahCutiScreen = () => {
           hour: "2-digit",
           minute: "2-digit",
         });
-         const ip = await getServerIP();
+        // const ip = await getServerIP();
 
         try {
           const notifResponse = await fetch(
-            `http://${ip}:8080/notifikasi/save`,
+            `${BASE_URL}notifikasi/save`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -348,6 +353,8 @@ const TambahCutiScreen = () => {
               }),
             }
           );
+
+          sendPushNotification(token,"Pengajuan Cuti",`Pengajuan cuti Anda berhasil dikirim pada ${formattedDate}.`);
 
           const notifResult = await notifResponse.json();
           console.log("Notifikasi terkirim:", notifResult);

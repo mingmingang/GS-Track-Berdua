@@ -125,7 +125,7 @@ export default function HomeScreen() {
           return;
         }
 
-        console.log("👤 Username:", current.username);
+        // console.log("👤 Username:", current.username);
 
         const response = await fetch(BASE_URL + "kehadiran/currenthadir", {
           method: "POST",
@@ -212,7 +212,7 @@ export default function HomeScreen() {
             distanceInterval: 10,
           },
           (location) => {
-            console.log("📡 Lokasi Update:", location);
+            // console.log("📡 Lokasi Update:", location);
             setGpsConnected(true);
             if (!user.alamat) {
               const updatedUser = {
@@ -249,7 +249,7 @@ export default function HomeScreen() {
     };
   }, []);
 
-  console.log("usee", user)
+  // console.log("usee", user)
 
   return (
     <View style={styles.container}>

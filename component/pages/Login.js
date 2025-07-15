@@ -14,62 +14,12 @@ import Toast from "react-native-toast-message";
 import { AuthContext } from "../backbone/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import BASE_URL from "../backbone/Constant";
-import * as Notifications from "expo-notifications";
-import * as Device from "expo-device";
 import i18n from "../backbone/i18n";
-import { getServerIP } from "../backbone/ApiConfig";
-
-const registerAndSendToken = async (npk) => {
-  try {
-    const token = await registerForPushNotificationAsync();
-    if (!token) return;
-
-    console.log("📱 Token dapet:", token);
-    console.log(npk);
-
-    const res = await fetch(`${BASE_URL}token/register-token`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        idKaryawan: npk,
-        token: token,
-      }),
-    });
-
-    const result = await res.json();
-    console.log("📬 Respon server:", result);
-  } catch (err) {
-    console.error("❌ Gagal kirim token:", err);
-  }
-};
-
-// Fungsi ambil permission notifikasi dan dapetin token
-async function registerForPushNotificationAsync() {
-  let token;
-  if (Device.isDevice) {
-    const { status: existingStatus } =
-      await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-
-    if (finalStatus !== "granted") {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-
-    if (finalStatus !== "granted") {
-      alert("❌ Izin notifikasi ditolak!");
-      return null;
-    }
-
-    token = (await Notifications.getExpoPushTokenAsync()).data;
-  } else {
-    alert("📵 Jalankan di HP asli ya bro!");
-  }
-
-  return token;
-}
+import { usePushNotif } from "./PushNotifContext";
+import { pushNotifKeUser } from "./notifUtils";
 
 const Login = ({ navigation }) => {
+  const {token} = usePushNotif();
   const { login } = useContext(AuthContext);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -125,7 +75,7 @@ const Login = ({ navigation }) => {
           minute: "2-digit",
         });
 
-        await registerAndSendToken(username);
+        // await registerAndSendToken(username);
 
         const notifResponse = await fetch(`${BASE_URL}notifikasi/save`, {
           method: "POST",
@@ -137,6 +87,8 @@ const Login = ({ navigation }) => {
             tipeNotif: 1,
           }),
         });
+
+        pushNotifKeUser(token,"Berhasil Login",`Halo selamat datang kembali!`)
 
         const notifResult = await notifResponse.json();
         console.log(notifResult);

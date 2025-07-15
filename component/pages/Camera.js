@@ -14,7 +14,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import BASE_URL from "../backbone/Constant";
 import CameraButton from "./CameraButton";
 import { useNavigation } from "@react-navigation/native";
-
+import { usePushNotif } from "./PushNotifContext";
+import { pushNotifKeUser } from "./notifUtils";
 
 
 const getData = async (key) => {
@@ -28,6 +29,7 @@ const getData = async (key) => {
 };
 
 export default function CameraScreen({mode = "checkin"}) {
+  const {token} = usePushNotif();
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
   const cameraRef = useRef(null);
@@ -125,6 +127,7 @@ export default function CameraScreen({mode = "checkin"}) {
       let resJson;
       try {
         resJson = await response.json();
+        console.log("INI RESPONSE JASONNNNNNNNNNNNNNNNN "+JSON.stringify(resJson));
       } catch (jsonErr) {
         resJson = null;
       }
@@ -159,6 +162,8 @@ export default function CameraScreen({mode = "checkin"}) {
             tipeNotif: 1,
           }),
       });
+
+      pushNotifKeUser(token,`Berhasil ${optCheck}!`,`Anda telah berhasil ${optCheck.toLowerCase()} pada jam ${formatWaktu} tanggal ${formatTanggal}`);
 
         const notifResult = await notifResponse.json();
         console.log(notifResult);

@@ -305,6 +305,11 @@ export default function KalenderScreen() {
                   const resJson = await response.json();
                   console.log("✅ Response:", resJson);
 
+                  if (!resJson.data) {
+                    Alert.alert("Info", "Anda sudah terlambat.");
+                    return;
+                  }
+
                   const { masukAbsen, keluarAbsen, indikatorKehadiran } = resJson.data;
 
                   if (indikatorKehadiran === 0) {
@@ -396,32 +401,33 @@ export default function KalenderScreen() {
 
       <Navbar />
 
-      <Modal visible={showDateModal} transparent animationType="slide">
+      <Modal visible={showDateModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Pilih Bulan & Tahun</Text>
 
             <Text style={styles.modalSubTitle}>Bulan</Text>
-            <Picker
-              selectedValue={selectedMonth}
-              style={styles.picker}
-              onValueChange={(itemValue) => setSelectedMonth(itemValue)}
-            >
-              {bulanList.map((bulan) => (
-                <Picker.Item key={bulan} label={bulan} value={bulan} />
-              ))}
-            </Picker>
+              <Picker
+                selectedValue={selectedMonth}
+                style={styles.picker}
+                onValueChange={(itemValue) => setSelectedMonth(itemValue)}
+              >
+                {bulanList.map((bulan) => (
+                  <Picker.Item key={bulan} label={bulan} value={bulan} />
+                ))}
+              </Picker>
 
-            <Text style={styles.modalSubTitle}>Tahun</Text>
-            <Picker
-              selectedValue={selectedYear}
-              style={styles.picker}
-              onValueChange={(itemValue) => setSelectedYear(itemValue)}
-            >
-              {tahunList.map((tahun) => (
-                <Picker.Item key={tahun} label={tahun} value={tahun} />
-              ))}
-            </Picker>
+              <Text style={styles.modalSubTitle}>Tahun</Text>
+              <Picker
+                selectedValue={selectedYear}
+                style={styles.picker}
+                onValueChange={(itemValue) => setSelectedYear(itemValue)}
+              >
+                {tahunList.map((tahun) => (
+                  <Picker.Item key={tahun} label={tahun} value={tahun} />
+                ))}
+              </Picker>
+
 
             <TouchableOpacity
               onPress={() => {
@@ -549,12 +555,17 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContainer: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 12,
-    width: "80%",
-    alignItems: "center",
-  },
+  backgroundColor: "#fff",
+  padding: 20,
+  borderRadius: 10,
+  width: "80%",
+  elevation: 5, // untuk Android
+  shadowColor: "#000", // untuk iOS
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.25,
+  shadowRadius: 3.84,
+},
+
   modalTitle: {
     fontSize: 18,
     fontWeight: "bold",
@@ -577,8 +588,8 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   picker: {
+    height: 150, // ini penting banget di iOS
     width: "100%",
-    height: 50,
-    marginBottom: 16,
-  },
+    color: "#000",
+  }
 });

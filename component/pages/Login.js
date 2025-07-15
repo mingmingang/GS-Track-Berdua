@@ -78,6 +78,7 @@ const Login = ({ navigation }) => {
 
   useEffect(() => {
     const loadLastLogin = async () => {
+      console.log(BASE_URL);
       const saved = await AsyncStorage.getItem("lastLogin");
       if (saved) {
         const parsed = JSON.parse(saved);
@@ -90,8 +91,7 @@ const Login = ({ navigation }) => {
   }, []);
   const handleLogin = async () => {
     try {
-      const ip = await getServerIP();
-      const response = await fetch(`http://${ip}:8080/karyawan/login`, {
+      const response = await fetch(`${BASE_URL}karyawan/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -127,7 +127,7 @@ const Login = ({ navigation }) => {
 
         await registerAndSendToken(username);
 
-        const notifResponse = await fetch(`http://${ip}:8080/notifikasi/save`, {
+        const notifResponse = await fetch(`${BASE_URL}notifikasi/save`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

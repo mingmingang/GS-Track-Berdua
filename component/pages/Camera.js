@@ -27,11 +27,8 @@ const getData = async (key) => {
   }
 };
 
-export default function CameraScreen({
-  navigation,
-  mode = "checkin",
-  onSuccess,
-}) {
+export default function CameraScreen({mode = "checkin"}) {
+  const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
   const cameraRef = useRef(null);
   const [photoUri, setPhotoUri] = useState(null);
@@ -63,11 +60,6 @@ export default function CameraScreen({
   };
 
   const reset = () => setPhotoUri(null);
-
-  const getTimeNow = () => {
-    const now = new Date();
-    return now.toTimeString().split(" ")[0];
-  };
 
   const sendPhoto = async () => {
     try {
@@ -142,9 +134,39 @@ export default function CameraScreen({
         throw new Error(errorMsg);
       }
 
+      const hour = now.getHours().toString().padStart(2, "0");
+      const min = now.getMinutes().toString().padStart(2, "0");
+      const date = now.getDate().toString().padStart(2, "0");
+      const month = (now.getMonth() + 1).toString().padStart(2, "0");
+      const year = now.getFullYear();      
+
+          
+    const formatWaktu = `${hour}:${min}`;
+    const formatTanggal = `${date}-${month}-${year}`;
+
+      let optCheck = "Checkin";
+      if(mode !== "checkin"){
+        optCheck = "Checkout";
+      }
+
+      const notifResponse = await fetch(`${BASE_URL}notifikasi/save`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            idKaryawan: npk,
+            judulNotifikasi: `Berhasil ${optCheck}!`,
+            pesanNotifikasi: `Anda telah berhasil ${optCheck.toLowerCase()} pada jam ${formatWaktu} tanggal ${formatTanggal}`,
+            tipeNotif: 1,
+          }),
+      });
+
+        const notifResult = await notifResponse.json();
+        console.log(notifResult);
+
       Alert.alert(`${mode === "checkin" ? "Check-in" : "Check-out"} berhasil`);
       reset();
-      if (onSuccess) onSuccess();
+      
+      //logic back
       navigation.goBack();
     } catch (err) {
       console.error("❌ Gagal kirim data:", err);

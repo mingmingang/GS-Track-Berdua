@@ -84,6 +84,57 @@ const styles = StyleSheet.create({
   detailKeternagan: {
     marginTop: 8,
   },
+ fixedButtons: {
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  right: 0,
+  backgroundColor: '#fff',
+  paddingVertical: 16,
+  paddingHorizontal: 20,
+  borderTopWidth: 1,
+  borderTopColor: '#eee',
+},
+
+buttonContainer: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  gap: 12,
+  marginBottom:10 // jika gap tidak support, gunakan marginHorizontal di tombol
+},
+
+buttonTolak: {
+  flex: 1,
+  backgroundColor: '#FF3B30',
+  paddingVertical: 12,
+  borderRadius: 10,
+  alignItems: 'center',
+  marginRight: 6,
+   color: '#fff',
+  fontWeight: 'bold',
+  fontSize: 16,
+  textAlign:"center" // beri jarak antar tombol (atau gunakan gap di atas)
+},
+
+buttonSetuju: {
+  flex: 1,
+  backgroundColor: '#34C759',
+  paddingVertical: 12,
+  borderRadius: 10,
+  alignItems: 'center',
+  marginLeft: 6, 
+   color: '#fff',
+  fontWeight: 'bold',
+  fontSize: 16,
+  textAlign:"center"// beri jarak antar tombol
+},
+
+buttonText: {
+  color: '#fff',
+  fontWeight: 'bold',
+  fontSize: 16,
+},
+
 });
 
 export default styles;

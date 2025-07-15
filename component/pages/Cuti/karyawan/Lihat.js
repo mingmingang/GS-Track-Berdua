@@ -52,6 +52,8 @@ export default function DetailCutiScreen() {
         return "#2196F3";
       case "dibatalkan":
         return "red";
+          case "ditolak":
+        return "red";
       default:
         return "#9E9E9E";
     }

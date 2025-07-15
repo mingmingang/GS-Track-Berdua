@@ -157,6 +157,7 @@
   "cuti_status.belum_terlaksana": "Belum Terlaksana",
   "cuti_status.menunggu_persetujuan": "Menunggu Persetujuan",
   "cuti_status.dibatalkan": "Dibatalkan",
+  "cuti_status.ditolak": "Ditolak",
   "cuti_subtype.CP": "Cuti Pribadi",
   "cuti_subtype.CB": "Cuti Besar",
   "cuti_subtype.CH": "Cuti Haid",

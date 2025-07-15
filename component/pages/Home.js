@@ -248,8 +248,9 @@ export default function HomeScreen() {
         locationSubscription.remove();
       }
     };
-  }, [user]); // <- Tetap re-run kalau data `user` berubah
+  }, []);
 
+  console.log("usee", user)
 
   return (
     <View style={styles.container}>
@@ -375,8 +376,7 @@ export default function HomeScreen() {
                   break;
                 case "menu_leave":
                   navigation.navigate(
-                    user?.kry_jabatan === "Atasan" ? "CutiAtasan" : "Cuti",
-                    { user }
+                    user?.jabatan === "Atasan" ? "CutiAtasan" : "Cuti",   { user } 
                   );
                   break;
                 case "menu_idl":

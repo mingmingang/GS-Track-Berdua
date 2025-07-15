@@ -1,6 +1,8 @@
 import { getServerIP } from "./ApiConfig";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system";
+
 
 const handleResponse = async (response) => {
   const textResponse = await response.text();
@@ -36,6 +38,18 @@ export const uploadLampiran = async (fileUri, fileName, api) => {
         zip: "application/zip",
       }[extension] || "application/octet-stream";
 
+        const fileInfo = await FileSystem.getInfoAsync(fileUri);
+    console.log("📁 File Info:");
+    console.log("→ URI:", fileUri);
+    console.log("→ Name:", fileName);
+    console.log("→ MIME Type:", mimeType);
+    console.log("→ Size (bytes):", fileInfo.size);
+    if (!fileInfo.exists) {
+      console.warn("⚠️ File tidak ditemukan di path:", fileUri);
+      return null;
+    }
+
+
     const formDataUpload = new FormData();
     formDataUpload.append("file", {
       uri: fileUri,
@@ -50,6 +64,8 @@ export const uploadLampiran = async (fileUri, fileName, api) => {
         "Content-Type": "multipart/form-data",
       },
     });
+
+    console.log("responess", response)
 
     if (!response.ok) throw new Error("Upload lampiran gagal");
 

@@ -56,7 +56,9 @@ import { initLanguage } from "./component/backbone/i18n";
 import OnboardingScreen from "./component/pages/OnBoarding";
 import NotificationScreen from "./component/pages/Notification";
 import Kalender from "./component/pages/Kalender";
-import Alamat from "./component/pages/Profile/AlamatAdd"
+import Alamat from "./component/pages/Profile/AlamatAdd";
+import KehadiranScreen from "./component/pages/Kehadiran/Index";
+import CameraScreen from "./component/pages/Camera";
 
 const Stack = createNativeStackNavigator();
 SplashScreen.preventAutoHideAsync();
@@ -68,7 +70,11 @@ const AuthStack = () => (
       component={Splash}
       options={{ animation: "fade", headerShown: false }}
     />
-    <Stack.Screen name="Onboarding" component={OnboardingScreen}  options={{ animation: "fade", headerShown: false }}/>
+    <Stack.Screen
+      name="Onboarding"
+      component={OnboardingScreen}
+      options={{ animation: "fade", headerShown: false }}
+    />
     <Stack.Screen
       name="Login"
       component={Login}
@@ -94,14 +100,14 @@ const AppStack = () => (
       component={Dokumen}
       options={{ animation: "fade", headerShown: false }}
     />
-     <Stack.Screen
+    <Stack.Screen
       name="Kalender"
       component={Kalender}
       options={{ animation: "fade", headerShown: false }}
     />
-     <Stack.Screen
+    <Stack.Screen
       name="Kehadiran"
-      component={Alamat}
+      component={KehadiranScreen}
       options={{ animation: "slide_from_right", headerShown: false }}
     />
     <Stack.Screen
@@ -235,6 +241,31 @@ const AppStack = () => (
       component={LihatReimbursementAtasan}
       options={{ animation: "slide_from_right", headerShown: false }}
     />
+    <Stack.Screen name="Checkin" options={{ headerShown: false }}>
+      {(props) => (
+        <CameraScreen
+          {...props}
+          mode="checkin"
+          onSuccess={() => {
+            console.log("✅ Berhasil checkin");
+            props.navigation.navigate("Kalender"); // ✅ PERBAIKI INI
+          }}
+        />
+      )}
+    </Stack.Screen>
+
+    <Stack.Screen name="Checkout" options={{ headerShown: false }}>
+      {(props) => (
+        <CameraScreen
+          {...props}
+          mode="checkout"
+          onSuccess={() => {
+            console.log("✅ Berhasil checkout");
+            props.navigation.navigate("Kalender"); // ✅ PERBAIKI INI
+          }}
+        />
+      )}
+    </Stack.Screen>
   </Stack.Navigator>
 );
 
@@ -273,7 +304,6 @@ const RootNavigator = () => {
     </NavigationContainer>
   );
 };
-
 
 // 4. Komponen App utama yang sekarang lebih bersih
 export default function App() {

@@ -16,7 +16,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import BASE_URL from "../backbone/Constant";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
-// Fungsi daftar token dan kirim ke backend
+import i18n from "../backbone/i18n";
+import { getServerIP } from "../backbone/ApiConfig";
+
+
 const registerAndSendToken = async (npk) => {
   try {
     const token = await registerForPushNotificationAsync();
@@ -102,7 +105,7 @@ const Login = ({ navigation }) => {
       console.log(result.data.npk);
 
       if (result.result === 200) {
-        setUser(result.data);
+        login(result.data);
 
         if (remember) {
           await AsyncStorage.setItem(

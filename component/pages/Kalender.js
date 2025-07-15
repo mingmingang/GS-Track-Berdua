@@ -271,8 +271,7 @@ export default function KalenderScreen() {
                       Alert.alert(i18n.t("already_checked_in"));
                       return;
                     }
-
-                    // Validasi jam boleh check-in hanya antara 06:00 - 09:00
+                    
                     if (jam < 6) {
                         Alert.alert("Terlalu pagi!", "Check-in hanya bisa dilakukan mulai jam 06:00 pagi.");
                         return;

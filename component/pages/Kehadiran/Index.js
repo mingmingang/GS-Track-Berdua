@@ -16,6 +16,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import BASE_URL from "../../backbone/Constant";
 import FilterTahun from "../../part/Filter";
 import MapView, { Marker, Callout } from "react-native-maps";
+import Header from "../../backbone/Header";
 
 const KehadiranScreen = ({ route }) => {
   const navigation = useNavigation();
@@ -166,13 +167,9 @@ const KehadiranScreen = ({ route }) => {
   };
 
   return (
+    <>
+    <Header title="Kehadiran"/>
     <View style={styles.container}>
-      <ImageBackground source={require("../../../assets/bg_navbar.png")} style={styles.header} resizeMode="cover">
-        <Ionicons name="arrow-back" size={24} color="#fff" style={{ paddingLeft: 20 }} />
-        <Text style={styles.headerText}>Kehadiran</Text>
-        <View style={{ width: 24 }} />
-      </ImageBackground>
-
       {/* Modal Filter Tahun */}
       <FilterTahun
         visible={yearModalVisible}
@@ -314,6 +311,7 @@ const KehadiranScreen = ({ route }) => {
         )}
       </ScrollView>
     </View>
+    </>
   );
 };
 

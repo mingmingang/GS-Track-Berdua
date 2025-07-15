@@ -12,6 +12,7 @@ import i18n from "../../../backbone/i18n";
 
 const CutiScreen = ({ route }) => {
   const navigation = useNavigation();
+  const [isLoading, setIsLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [cutiList, setCutiList] = useState([]);
   const userId = route?.params?.user?.npk || "";
@@ -46,16 +47,23 @@ const CutiScreen = ({ route }) => {
     if (!userId) return;
 
     const fetchData = async () => {
-      const data = await fetchCutiListAPI(
-        userId,
-        selectedJenis,
-        selectedStatus
-      );
-      const dataFilteredByYear = data.filter((cuti) => {
-        const tahunAwal = new Date(cuti.tanggalAwal).getFullYear();
-        return tahunAwal.toString() === selectedYear;
-      });
-      setCutiList(dataFilteredByYear);
+      setIsLoading(true); // start loading
+      try {
+        const data = await fetchCutiListAPI(
+          userId,
+          selectedJenis,
+          selectedStatus
+        );
+        const dataFilteredByYear = data.filter((cuti) => {
+          const tahunAwal = new Date(cuti.tanggalAwal).getFullYear();
+          return tahunAwal.toString() === selectedYear;
+        });
+        setCutiList(dataFilteredByYear);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchData();

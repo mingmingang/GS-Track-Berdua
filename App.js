@@ -54,7 +54,7 @@ import FaqScreen from "./component/pages/Profile/FAQs";
 import LanguageScreen from "./component/pages/Profile/UbahBahasa";
 import { initLanguage } from "./component/backbone/i18n";
 import OnboardingScreen from "./component/pages/OnBoarding";
-import NotificationScreen from "./component/pages/Notification";
+import NotificationScreen from "./component/pages/Notifications";
 import Kalender from "./component/pages/Kalender";
 import Alamat from "./component/pages/Profile/AlamatAdd";
 import KehadiranScreen from "./component/pages/Kehadiran/Index";

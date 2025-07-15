@@ -170,7 +170,6 @@ const KehadiranScreen = ({ route }) => {
     <>
     <Header title="Kehadiran"/>
     <View style={styles.container}>
-      {/* Modal Filter Tahun */}
       <FilterTahun
         visible={yearModalVisible}
         onClose={() => setYearModalVisible(false)}
@@ -178,13 +177,10 @@ const KehadiranScreen = ({ route }) => {
         onSelectYear={(year) => setSelectedYear(year)}
       />
 
-      {/* Modal Map Lokasi */}
       {mapModalVisible && selectedLocation && (
         <Modal visible={mapModalVisible} transparent animationType="slide">
           <View style={{ flex: 1, backgroundColor: '#000000aa', justifyContent: 'center', alignItems: 'center' }}>
             <View style={{ width: '90%', height: 450, backgroundColor: 'white', borderRadius: 12, overflow: 'hidden' }}>
-              
-              {/* Legenda */}
               <View style={{ flexDirection: 'row', justifyContent: 'space-around', padding: 8, backgroundColor: '#f0f0f0' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: 'green', marginRight: 6 }} />
@@ -403,7 +399,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   timeText: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: "bold",
     fontFamily: "Poppins_700Bold",
   },

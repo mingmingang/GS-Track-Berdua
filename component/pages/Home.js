@@ -264,11 +264,7 @@ export default function HomeScreen() {
                 </Text>
               </View>
             </View>
-            <TouchableOpacity
-              onPress={() => navigation.navigate("Notification")}
-            >
-              <MaterialIcons name="notifications" size={28} color="#1E3668" />
-            </TouchableOpacity>
+            <NotificationIcon navigation={navigation}/>
           </View>
           
           <View style={styles.statusRow}>

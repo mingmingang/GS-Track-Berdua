@@ -34,6 +34,7 @@ import BASE_URL from "../../../backbone/Constant";
 import { sendPushNotification } from "../../ExpoClientPushNotification";
 
 const TambahCutiScreen = () => {
+  const { token } = usePushNotif();
   const navigation = useNavigation();
   const [open, setOpen] = useState(false);
   const [tipeCuti, setTipeCuti] = useState(null);
@@ -168,7 +169,6 @@ const TambahCutiScreen = () => {
   };
 
   const generateNewCutiId = (lastId) => {
-    const { token } = usePushNotif();
     const now = new Date();
     const prefix = `LVR${now.getFullYear()}${String(
       now.getMonth() + 1

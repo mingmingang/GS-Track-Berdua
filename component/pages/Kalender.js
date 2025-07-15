@@ -330,7 +330,6 @@ export default function KalenderScreen() {
               <TouchableOpacity
                 style={styles.checkoutBtn}
                 onPress={async () => {
-                  navigation.navigate("Checkout");
                   try {
                     const current = await getData("lastLogin");
                     if (!current?.username) {

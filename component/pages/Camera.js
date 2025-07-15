@@ -111,7 +111,7 @@ export default function CameraScreen({mode = "checkin"}) {
             longitudeKeluar: location.coords.longitude,
           })
         );
-        formData.append("tanggal", tanggal);
+        // formData.append("tanggal", tanggal);
       }
 
       const endpoint =

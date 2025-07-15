@@ -51,7 +51,8 @@ const Login = ({ navigation }) => {
       });
 
       const result = await response.json();
-      console.log(result.data.npk);
+      // console.log(result.data);
+      // console.log(result.data.npk);
 
       if (result.result === 200) {
         login(result.data);

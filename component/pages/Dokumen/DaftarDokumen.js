@@ -6,6 +6,7 @@ import { useRoute } from "@react-navigation/native";
 import i18n from "../../backbone/i18n";
 import { fetchCutiListAPI } from "../../backbone/api"; // pastikan path-nya benar
 import { AuthContext } from "../../backbone/AuthContext";
+import { downloadLampiranFile } from "../../utils/DownloadLampiran";
 
 const allDocuments = {
   lembur: [
@@ -18,8 +19,7 @@ const DaftarDokumenScreen = () => {
   const { folderKey } = route.params;
   const [dokumen, setDokumen] = useState([]);
   const [loading, setLoading] = useState(true);
-const { user, logout } = useContext(AuthContext);
-
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
     const loadDokumen = async () => {
@@ -30,9 +30,11 @@ const { user, logout } = useContext(AuthContext);
 
         const formatted = data.map((item) => ({
           id: item.id?.toString() || Math.random().toString(),
-          name: `Cuti ${item.subTipeCuti || "-"}`,
-          date: item.tanggalAwal,
+          name: `Cuti ${item.sub_tipe_cuti || item.subTipeCuti || "-"}`,
+          date: item.tanggal_awal || item.tanggal || item.tanggalAwal,
+          lampiran: item.lampiran, // file name
         }));
+
         setDokumen(formatted);
       } else {
         setDokumen(allDocuments[folderKey] || []);
@@ -43,6 +45,14 @@ const { user, logout } = useContext(AuthContext);
 
     loadDokumen();
   }, [folderKey]);
+
+  const handleDownload = (filename) => {
+    if (!filename) {
+      Alert.alert("Gagal", "Lampiran tidak tersedia.");
+      return;
+    }
+    downloadLampiranFile(filename);
+  };
 
   return (
     <>
@@ -60,18 +70,28 @@ const { user, logout } = useContext(AuthContext);
               <View style={styles.documentItem}>
                 <Text style={styles.documentName}>{item.name}</Text>
                 <Text style={styles.documentDate}>{item.date}</Text>
+                {item.lampiran && (
+                  <>
+                    <Text style={styles.documentLampiran}>📎 {item.lampiran}</Text>
+                    <Text
+                      style={styles.downloadLink}
+                      onPress={() => handleDownload(item.lampiran)}
+                    >
+                      📥 Download
+                    </Text>
+                  </>
+                )}
               </View>
             )}
           />
         )}
       </View>
+      <Navbar />
     </>
   );
 };
 
 export default DaftarDokumenScreen;
-
-
 
 const styles = StyleSheet.create({
   container: {
@@ -97,6 +117,18 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_400Regular",
     color: "#888",
   },
+  documentLampiran: {
+    fontSize: 12,
+    color: "#555",
+    fontFamily: "Poppins_400Regular",
+    marginTop: 4,
+  },
+  downloadLink: {
+    marginTop: 6,
+    color: "#007BFF",
+    fontSize: 14,
+    fontWeight: "600",
+  },
   emptyText: {
     fontSize: 14,
     color: "#888",
@@ -104,4 +136,3 @@ const styles = StyleSheet.create({
     marginTop: 50,
   },
 });
-

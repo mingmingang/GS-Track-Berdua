@@ -188,7 +188,7 @@ export default function HomeScreen() {
           user.fotoKaryawan
         )}?t=${Date.now()}`;
         setImageUrl(fullUrl);
-        console.log("✅ Image URL:", fullUrl);
+        // console.log("✅ Image URL:", fullUrl);
       }
     };
 
@@ -213,7 +213,7 @@ export default function HomeScreen() {
             distanceInterval: 10,
           },
           (location) => {
-            console.log("📡 Lokasi Update:", location);
+            // console.log("📡 Lokasi Update:", location);
             setGpsConnected(true);
             if (!user.alamat) {
               const updatedUser = {

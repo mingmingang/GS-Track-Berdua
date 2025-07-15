@@ -134,6 +134,7 @@ export default function KalenderScreen() {
   const fetchKehadiranByMonth = async () => {
     try {
       const user = await getData("lastLogin");
+      console.log("Payload yang dikirim:", JSON.stringify({ idKaryawan: user.username }));
 
       if (!user?.username) {
         Alert.alert("Error", "Data login tidak ditemukan.");
@@ -151,7 +152,7 @@ export default function KalenderScreen() {
       });
 
       const data = await response.json();
-      // console.log("✅ Kehadiran data:", data);
+      console.log("✅ Kehadiran data:", data);
 
       // Cek kalau isinya array
       if (Array.isArray(data.data)) {

@@ -2,6 +2,7 @@ import { getServerIP } from "./ApiConfig";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
+import BASE_URL from "./Constant";
 
 
 const handleResponse = async (response) => {
@@ -284,8 +285,6 @@ export const fetchCutiListAPI = async (
   selectedStatus
 ) => {
   try {
-    const ip = await getServerIP();
-
     const query = new URLSearchParams({
       npk: userId,
       ...(selectedJenis && { jenis: selectedJenis }),
@@ -293,7 +292,7 @@ export const fetchCutiListAPI = async (
     });
 
     const response = await fetch(
-      `http://${ip}:8080/cuti/karyawan?${query.toString()}`
+      `${BASE_URL}cuti/karyawan?${query.toString()}`
     );
     const data = await response.json();
 
@@ -305,6 +304,19 @@ export const fetchCutiListAPI = async (
     return [];
   }
 };
+
+export const fetchFolderSizes = async () => {
+  try {
+    const res = await fetch(`${BASE_URL}cuti/size`);
+    const data = await res.json();
+    return data; // objek key-folder : byte
+  } catch (err) {
+    console.error("Gagal ambil ukuran folder", err);
+    return {};
+  }
+};
+
+
 
 export const fetchCutiListAPIAtasan = async (
   selectedJenis,

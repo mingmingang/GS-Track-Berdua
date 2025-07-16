@@ -219,13 +219,13 @@ const CutiScreen = ({ route }) => {
           }}
         >
           <MaterialIcons name="date-range" size={20} color="#1E2D56" />
-          <Text style={{ marginLeft: 6 }}>
-            {i18n.t("cuti_masa_berlaku")}:{" "}
-            <Text style={{ color: "red", fontWeight: "bold" }}>
-              {formatTanggal(jatahCuti.masaBerlaku)}
+            <Text style={{ marginLeft: 6 }}>
+              {i18n.t("cuti_masa_berlaku")}:{" "}
+               <Text style={{ color: "red", fontWeight: "bold" }}>
+                {jatahCuti?.masaBerlaku ? formatTanggal(jatahCuti.masaBerlaku) : "-"}
+              </Text>
             </Text>
-          </Text>
-        </View>
+          </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.filterBar}>

@@ -1,6 +1,6 @@
 export const getServerIP = async () => {
   try {
-    const response = await fetch("http://172.20.10.2:8080/ip");
+    const response = await fetch("http://192.168.33.152:8080/ip");
     const result = await response.json();
     return result.ip;
   } catch (error) {

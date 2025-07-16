@@ -9,7 +9,6 @@ import {
   Alert,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
-import { Picker } from "@react-native-picker/picker";
 import Navbar from "../backbone/Navbar";
 import { MaterialIcons } from "@expo/vector-icons";
 import { ImageBackground } from "react-native";
@@ -276,6 +275,16 @@ export default function KalenderScreen() {
                     );
 
                     const resJson = await response.json();
+
+                    console.log(resJson.data);
+
+                    if (resJson.data === null) {
+                        Alert.alert(
+                          "Info",
+                          "Anda sudah terlambat"
+                        );
+                        return;
+                    }
 
                     if (resJson.data?.masukAbsen !== null) {
                       Alert.alert(
@@ -675,6 +684,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   picker: {
+    height: 150, // ini penting banget di iOS
     width: "100%",
     height: 50,
     marginBottom: 16,

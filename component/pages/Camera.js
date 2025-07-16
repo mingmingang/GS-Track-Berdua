@@ -14,7 +14,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import BASE_URL from "../backbone/Constant";
 import CameraButton from "./CameraButton";
 import { useNavigation } from "@react-navigation/native";
-
+import { usePushNotif } from "./PushNotifContext";
+import { pushNotifKeUser } from "./notifUtils";
 
 
 const getData = async (key) => {
@@ -27,11 +28,9 @@ const getData = async (key) => {
   }
 };
 
-export default function CameraScreen({
-  navigation,
-  mode = "checkin",
-  onSuccess,
-}) {
+export default function CameraScreen({mode = "checkin"}) {
+  const {token} = usePushNotif();
+  const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
   const cameraRef = useRef(null);
   const [photoUri, setPhotoUri] = useState(null);
@@ -63,11 +62,6 @@ export default function CameraScreen({
   };
 
   const reset = () => setPhotoUri(null);
-
-  const getTimeNow = () => {
-    const now = new Date();
-    return now.toTimeString().split(" ")[0];
-  };
 
   const sendPhoto = async () => {
     try {
@@ -117,7 +111,7 @@ export default function CameraScreen({
             longitudeKeluar: location.coords.longitude,
           })
         );
-        formData.append("tanggal", tanggal);
+        // formData.append("tanggal", tanggal);
       }
 
       const endpoint =
@@ -133,6 +127,7 @@ export default function CameraScreen({
       let resJson;
       try {
         resJson = await response.json();
+        console.log("INI RESPONSE JASONNNNNNNNNNNNNNNNN "+JSON.stringify(resJson));
       } catch (jsonErr) {
         resJson = null;
       }
@@ -142,9 +137,41 @@ export default function CameraScreen({
         throw new Error(errorMsg);
       }
 
+      const hour = now.getHours().toString().padStart(2, "0");
+      const min = now.getMinutes().toString().padStart(2, "0");
+      const date = now.getDate().toString().padStart(2, "0");
+      const month = (now.getMonth() + 1).toString().padStart(2, "0");
+      const year = now.getFullYear();      
+
+          
+    const formatWaktu = `${hour}:${min}`;
+    const formatTanggal = `${date}-${month}-${year}`;
+
+      let optCheck = "Checkin";
+      if(mode !== "checkin"){
+        optCheck = "Checkout";
+      }
+
+      const notifResponse = await fetch(`${BASE_URL}notifikasi/save`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            idKaryawan: npk,
+            judulNotifikasi: `Berhasil ${optCheck}!`,
+            pesanNotifikasi: `Anda telah berhasil ${optCheck.toLowerCase()} pada jam ${formatWaktu} tanggal ${formatTanggal}`,
+            tipeNotif: 1,
+          }),
+      });
+
+      pushNotifKeUser(token,`Berhasil ${optCheck}!`,`Anda telah berhasil ${optCheck.toLowerCase()} pada jam ${formatWaktu} tanggal ${formatTanggal}`);
+
+        const notifResult = await notifResponse.json();
+        console.log(notifResult);
+
       Alert.alert(`${mode === "checkin" ? "Check-in" : "Check-out"} berhasil`);
       reset();
-      if (onSuccess) onSuccess();
+      
+      //logic back
       navigation.goBack();
     } catch (err) {
       console.error("❌ Gagal kirim data:", err);

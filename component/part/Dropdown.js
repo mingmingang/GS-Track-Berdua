@@ -26,7 +26,7 @@ const Dropdown = ({
         fontSize: 14,
       }}
       flatListProps={{
-        scrollEnabled: false,
+        scrollEnabled: true,
         nestedScrollEnabled: true,
       }}
       style={{

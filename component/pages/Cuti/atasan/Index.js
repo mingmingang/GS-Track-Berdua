@@ -223,12 +223,7 @@ const CutiAtasanScreen = ({ route }) => {
         ))}
       </ScrollView>
 
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => navigation.navigate("TambahCuti")}
-      >
-        <Text style={styles.fabText}>＋</Text>
-      </TouchableOpacity>
+     
     </View>
   );
 };

@@ -58,10 +58,10 @@ export default function ApprovalScreen() {
     }
   };
 
-  const handleUpdateStatus = async (status) => {
+const handleUpdateStatus = async (status) => {
   try {
-      const ip = await getServerIP();
-    const response = await fetch(`http://${ip}:8080/cuti`, {
+    const ip = await getServerIP();
+    const response = await fetch(`http://${ip}:8080/cuti/approval`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -76,7 +76,7 @@ export default function ApprovalScreen() {
 
     if (response.ok) {
       alert(result.message);
-      navigation.goBack(); // atau refresh data
+      navigation.goBack();
     } else {
       alert("Gagal memperbarui status cuti.");
     }
@@ -89,7 +89,7 @@ export default function ApprovalScreen() {
 
   return (
     <>
-      <Header title={i18n.t("cuti_detail.title")} />
+      <Header title="Approval Cuti" />
       <ScrollView style={styles.container}>
         <View style={styles.statusBox}>
           <Text style={styles.statusLabel}>{i18n.t("cuti_detail.status")}</Text>

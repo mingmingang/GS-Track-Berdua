@@ -480,7 +480,7 @@ const TambahCutiScreen = () => {
         {tipeCuti === "Cuti Khusus" && (
           <>
             <Text style={{ marginTop: 10, marginBottom: 8 }}>
-              {i18n.t("tambahCuti.tipeCutiKhusus")}
+     Cuti Khusus
               <Text style={{ color: "red" }}> *</Text>
             </Text>
             <Dropdown
@@ -744,7 +744,7 @@ const TambahCutiScreen = () => {
       </ScrollView>
 
       <View style={styles.buttonRow}>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={[
             styles.button,
             {
@@ -764,7 +764,7 @@ const TambahCutiScreen = () => {
           <Text style={styles.buttonText}>
             {i18n.t("tambahCuti.tombolPrint")}
           </Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <TouchableOpacity
           style={[

@@ -41,7 +41,7 @@ const CutiScreen = ({ route }) => {
       );
       setJatahCuti(result);
     } catch (error) {
-      console.log(error);
+      //console.log(error);
     }
   };
 
@@ -75,10 +75,10 @@ const CutiScreen = ({ route }) => {
 
   useFocusEffect(
     useCallback(() => {
-      if (selectedYear) {
+      if (userId && selectedYear && selectedJenis && cutiList.length > 0) {
         fetchJatahCuti();
       }
-    }, [selectedYear])
+    }, [userId, selectedYear, selectedJenis, cutiList])
   );
 
   const getStatusColor = (status) => {
@@ -282,7 +282,7 @@ const CutiScreen = ({ route }) => {
                   </Text>
                 </View>
                 {item.status !== "Terlaksana" &&
-                  item.status !== "Dibatalkan" && 
+                  item.status !== "Dibatalkan" &&
                   item.status !== "Ditolak" && (
                     <TouchableOpacity
                       onPress={() =>

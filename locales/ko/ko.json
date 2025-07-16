@@ -289,5 +289,7 @@
   "leave_status_pending": "미완료",
   "leave_status_pending_desc": "설명: 아직 사용되지 않았기 때문에 휴가를 취소할 수 있습니다.",
   "leave_status_waiting": "승인 대기 중",
-  "leave_status_waiting_desc": "설명: 상사의 승인을 기다리고 있습니다."
+  "leave_status_waiting_desc": "설명: 상사의 승인을 기다리고 있습니다.",
+   "cuti_status.ditolak": "거절됨",
+    "cuti_status_ditolak": "거절됨"
 }

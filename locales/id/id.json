@@ -248,7 +248,8 @@
       "pilihFile": "Pilih File",
       "fileTerpilih": "File terpilih",
       "previewPDF": "Dokumen PDF",
-      "previewZIP": "File ZIP"
+      "previewZIP": "File ZIP",
+     
     },
     "cuti": {
       "pribadi": "Cuti Pribadi",
@@ -369,6 +370,6 @@
   "tombolSubmit":"Kirim",
   "placeholderTipeCutiKhusus":"Pilih Jenis Cuti Khusus",
   "lampiranWajib":"Cuti Khusus wajib melampirkan berkas (max 2mb)"
-}
-
+},
+  "cuti_status_ditolak": "Ditolak"
 }

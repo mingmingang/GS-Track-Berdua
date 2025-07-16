@@ -275,5 +275,8 @@
   "leave_status_pending": "未実施",
   "leave_status_pending_desc": "備考：まだ使用されていないため、休暇をキャンセルできます。",
   "leave_status_waiting": "承認待ち",
-  "leave_status_waiting_desc": "備考：休暇は上司の承認を待っています。"
+  "leave_status_waiting_desc": "備考：休暇は上司の承認を待っています。",
+   "cuti_status.ditolak": "却下されました",
+     "cuti_status_ditolak": "却下されました"
+
 }

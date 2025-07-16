@@ -63,7 +63,7 @@ import CutiAtasanScreen from "./component/pages/Cuti/atasan/Index";
 import ApprovalScreen from "./component/pages/Cuti/atasan/Approval";
 import DaftarDokumenScreen from "./component/pages/Dokumen/DaftarDokumen";
 import DokumenFolderScreen from "./component/pages/Dokumen/Index";
-
+import { PushNotifProvider } from "./component/pages/PushNotifContext";
 
 const Stack = createNativeStackNavigator();
 SplashScreen.preventAutoHideAsync();
@@ -333,11 +333,13 @@ const RootNavigator = () => {
 export default function App() {
   return (
     <>
-      <AuthProvider>
-        <LanguageProvider>
-          <RootNavigator />
-        </LanguageProvider>
-      </AuthProvider>
+      <PushNotifProvider>
+        <AuthProvider>
+          <LanguageProvider>
+            <RootNavigator />
+          </LanguageProvider>
+        </AuthProvider>
+      </PushNotifProvider>
 
       {/* Toast diletakkan di luar agar bisa tampil di atas semua layar */}
       <Toast />

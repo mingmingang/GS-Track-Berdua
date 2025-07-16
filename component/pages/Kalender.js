@@ -9,7 +9,6 @@ import {
   Alert,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
-import { Picker } from "@react-native-picker/picker";
 import Navbar from "../backbone/Navbar";
 import { MaterialIcons } from "@expo/vector-icons";
 import { ImageBackground } from "react-native";

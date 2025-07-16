@@ -114,8 +114,6 @@ export default function HomeScreen() {
     }
   };
 
-  console.log()
-
     const loadCurrentHadir = async () => {
       try {
         const current = await getData("lastLogin");
@@ -127,7 +125,7 @@ export default function HomeScreen() {
           return;
         }
 
-        console.log("👤 Username:", current.username);
+        // console.log("👤 Username:", current.username);
 
         const response = await fetch(BASE_URL + "kehadiran/currenthadir", {
           method: "POST",
@@ -139,7 +137,7 @@ export default function HomeScreen() {
 
         const result = await response.json();
 
-        console.log("📥 Response kehadiran:", result);
+        // console.log("📥 Response kehadiran:", result);
 
         if (result.result === 200 && result.data) {
           const masuk = result.data.masukAbsen;
@@ -185,8 +183,7 @@ export default function HomeScreen() {
     // 3. Ambil foto karyawan
     const buildImageUrl = async () => {
       if (user?.fotoKaryawan) {
-        const ip = await getServerIP();
-        const fullUrl = `http://${ip}:8082/karyawan/lampiran/${encodeURIComponent(
+        const fullUrl = `${BASE_URL}karyawan/lampiran/${encodeURIComponent(
           user.fotoKaryawan
         )}?t=${Date.now()}`;
         setImageUrl(fullUrl);
@@ -252,7 +249,7 @@ export default function HomeScreen() {
     };
   }, []);
 
-  console.log("usee", user);
+  // console.log("usee", user)
 
   return (
     <View style={styles.container}>

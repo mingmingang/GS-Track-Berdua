@@ -198,7 +198,7 @@ export default function CameraScreen({mode = "checkin"}) {
         style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
       >
         <Text>Izin kamera tidak diberikan.</Text>
-        <TouchableOpacity onPress={() => requestPermission} style={btnStyle}>
+        <TouchableOpacity onPress={() => requestPermission}>
           <Text style={textStyle}>Izinkan Kamera</Text>
         </TouchableOpacity>
       </SafeAreaView>

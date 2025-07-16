@@ -198,7 +198,7 @@ export default function NotificationScreen() {
         setNotifications([]);
       }
     } catch (error) {
-      console.error("Gagal fetch notifikasi:", error);
+      //console.error("Gagal fetch notifikasi:", error);
       setNotifications([]);
     } finally {
       setLoading(false);

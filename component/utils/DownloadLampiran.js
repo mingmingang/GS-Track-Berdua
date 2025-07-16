@@ -1,5 +1,7 @@
 import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import { Alert, Platform } from 'react-native';
+import * as MediaLibrary from 'expo-media-library';
 import BASE_URL from '../backbone/Constant';
 
 export const downloadLampiranFile = async (filename) => {
@@ -8,7 +10,7 @@ export const downloadLampiranFile = async (filename) => {
     const fileUri = FileSystem.documentDirectory + filename;
 
     console.log("🚀 Mulai download:", downloadUrl);
-    
+
     const downloadResumable = FileSystem.createDownloadResumable(
       downloadUrl,
       fileUri
@@ -22,7 +24,6 @@ export const downloadLampiranFile = async (filename) => {
       return;
     }
 
-    // ✅ Berhasil download, sekarang tawarin user buat save manual
     if (Platform.OS === 'android') {
       const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
 
@@ -32,13 +33,13 @@ export const downloadLampiranFile = async (filename) => {
       }
 
       // CEK APAKAH FOLDER YANG DIPILIH ITU /Download
-        if (permissions.directoryUri.includes("Download")) {
+      if (permissions.directoryUri.includes("Download")) {
         Alert.alert(
-            "Folder Ditolak",
-            "Tidak bisa simpan langsung ke folder Download. Silakan pilih folder lain atau buat folder baru."
+          "Folder Ditolak",
+          "Tidak bisa simpan langsung ke folder Download. Silakan pilih folder lain atau buat folder baru."
         );
         return;
-        }
+      }
 
       const destUri = await FileSystem.StorageAccessFramework.createFileAsync(
         permissions.directoryUri,
@@ -56,10 +57,19 @@ export const downloadLampiranFile = async (filename) => {
 
       Alert.alert("Berhasil", "File disimpan ke folder pilihan kamu!");
     } else {
-      // iOS bisa langsung share
-      await Sharing.shareAsync(result.uri);
+       const isSharingAvailable = await Sharing.isAvailableAsync();
+      if (isSharingAvailable) {
+        await Sharing.shareAsync(result.uri, {
+          UTI: 'com.adobe.pdf',
+          mimeType: 'application/pdf',
+        });
+      } else {
+        Alert.alert(
+          "Gagal Membuka Share",
+          "Perangkat ini tidak mendukung fitur berbagi file."
+        );
+      }
     }
-
   } catch (err) {
     console.error("❌ Gagal simpan file", err);
     Alert.alert("Error", "Gagal menyimpan file.");

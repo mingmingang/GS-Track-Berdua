@@ -274,7 +274,7 @@ export const fetchJatahCutiAPI = async (
       masaBerlaku: data[0]?.masaBerlaku || 0,
     };
   } catch (error) {
-    console.error("Gagal mengambil jatah cuti", error);
+    //console.error("Gagal mengambil jatah cuti", error);
     throw error;
   }
 };

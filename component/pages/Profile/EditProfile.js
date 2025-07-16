@@ -7,7 +7,7 @@ import {
   ScrollView,
   Alert,
   Image,
-  SafeAreaView
+  SafeAreaView,
 } from "react-native";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -63,8 +63,6 @@ const EditProfile = () => {
     buildImageUrl();
   }, [user?.fotoKaryawan]);
 
-  
-
   const [openPlant, setOpenPlant] = useState(false);
   const [itemsPlant, setItemsPlant] = useState([
     { label: "Jakarta", value: "Jakarta" },
@@ -102,13 +100,18 @@ const EditProfile = () => {
       const rawPhone = user.noHandphone || "";
       const localPhone = rawPhone.replace(/^(\+62|62)/, "0");
 
+      const isValidPlant = itemsPlant.some((item) => item.value === user.plant);
+      const isValidDepartemen = itemsDepartemen.some(
+        (item) => item.value === user.departemen
+      );
+
       setFormData({
         npk: user.npk || "",
         namaKaryawan: user.namaKaryawan || "",
         email: user.email || "",
         noHandphone: localPhone,
-        plant: user.plant || "",
-        departemen: user.departemen || "",
+        plant: isValidPlant ? user.plant : "", // validasi plant
+        departemen: isValidDepartemen ? user.departemen : "", // validasi departemen
         tanggalLahir: user.tanggalLahir || "",
         fotoKaryawan: user.fotoKaryawan || "",
         alamat: user.alamat || "",
@@ -117,7 +120,6 @@ const EditProfile = () => {
       });
     }
   }, [user]);
-
 
   const handleChange = (key, value) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
@@ -229,128 +231,133 @@ const EditProfile = () => {
   return (
     <View style={styles.container}>
       <Header title={i18n.t("edit_profile")} />
-       <SafeAreaView style={styles.container}>
-      <ScrollView   contentContainerStyle={[styles.form, { flexGrow: 1 }]}>
-        <View style={styles.headerSection}>
-          <View style={styles.profileWrapper}>
-            {formData.fotoKaryawan ? (
-              <Image
-                source={{
-                  uri: formData.fotoKaryawan.startsWith("file://")
-                    ? formData.fotoKaryawan
-                    : imageUrl,
-                }}
-                style={styles.profileImage}
-              />
-            ) : (
-              <View style={styles.defaultAvatar}>
-                <FontAwesome name="user" size={40} color="#1E3668" />
-              </View>
-            )}
-            <TouchableOpacity
-              onPress={handleEditProfilePicture}
-              style={styles.editIconWrapper}
-            >
-              <Ionicons name="pencil" size={16} color="#fff" />
-            </TouchableOpacity>
+      <SafeAreaView style={styles.container}>
+        <ScrollView contentContainerStyle={[styles.form, { flexGrow: 1 }]}>
+          <View style={styles.headerSection}>
+            <View style={styles.profileWrapper}>
+              {formData.fotoKaryawan ? (
+                <Image
+                  source={{
+                    uri: formData.fotoKaryawan.startsWith("file://")
+                      ? formData.fotoKaryawan
+                      : imageUrl,
+                  }}
+                  style={styles.profileImage}
+                />
+              ) : (
+                <View style={styles.defaultAvatar}>
+                  <FontAwesome name="user" size={40} color="#1E3668" />
+                </View>
+              )}
+              <TouchableOpacity
+                onPress={handleEditProfilePicture}
+                style={styles.editIconWrapper}
+              >
+                <Ionicons name="pencil" size={16} color="#fff" />
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
 
-        <Text style={styles.label}>{i18n.t("label_name")}</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.namaKaryawan}
-          onChangeText={(text) => handleChange("namaKaryawan", text)}
-        />
-
-        <Text style={styles.label}>{i18n.t("label_email")}</Text>
-        <TextInput
-          style={styles.input}
-          value={formData.email}
-          onChangeText={(text) => handleChange("email", text)}
-        />
-
-        <Text style={styles.label}>{i18n.t("label_phone")}</Text>
-        {formData.noHandphone !== "" && (
-          <PhoneInput
-            value={formData.noHandphone}
-            defaultCode="ID"
-            layout="first"
-            onChangeFormattedText={(text) => handleChange("noHandphone", text)}
-            withShadow
-            autoFocus={false}
-            containerStyle={styles.phoneContainer}
-            textContainerStyle={styles.phoneTextContainer}
+          <Text style={styles.label}>{i18n.t("label_name")}</Text>
+          <TextInput
+            style={styles.input}
+            value={formData.namaKaryawan}
+            onChangeText={(text) => handleChange("namaKaryawan", text)}
           />
-        )}
 
-        <Text style={styles.label}>{i18n.t("label_plant")}</Text>
-        <Dropdown
-          open={openPlant}
-          value={formData.plant}
-          items={itemsPlant}
-          setOpen={setOpenPlant}
-          setValue={(val) => handleChange("plant", val)}
-          setItems={setItemsPlant}
-          placeholder={i18n.t("select_plant")}
-          modalTitle={i18n.t("select_plant")}
-        />
+          <Text style={styles.label}>{i18n.t("label_email")}</Text>
+          <TextInput
+            style={styles.input}
+            value={formData.email}
+            onChangeText={(text) => handleChange("email", text)}
+          />
 
-        <Text style={styles.label}>{i18n.t("label_department")}</Text>
-        <Dropdown
-          open={openDepartemen}
-          value={formData.departemen}
-          items={itemsDepartemen}
-          setOpen={setOpenDepartemen}
-          setValue={(val) => handleChange("departemen", val)}
-          setItems={setItemsDepartemen}
-          placeholder={i18n.t("select_department")}
-          modalTitle={i18n.t("select_department")}
-        />
+          <Text style={styles.label}>{i18n.t("label_phone")}</Text>
+          {formData.noHandphone !== "" && (
+            <PhoneInput
+              value={formData.noHandphone}
+              defaultCode="ID"
+              layout="first"
+              onChangeFormattedText={(text) =>
+                handleChange("noHandphone", text)
+              }
+              withShadow
+              autoFocus={false}
+              containerStyle={styles.phoneContainer}
+              textContainerStyle={styles.phoneTextContainer}
+            />
+          )}
 
-        <Text style={styles.label}>{i18n.t("label_birthdate")}</Text>
-        <TouchableOpacity style={styles.input} onPress={showDatePicker}>
-          <Text>
-            {formatTanggal(formData.tanggalLahir) || i18n.t("select_birthdate")}
+          <Text style={styles.label}>{i18n.t("label_plant")}</Text>
+          <Dropdown
+            open={openPlant}
+            value={formData.plant}
+            items={itemsPlant}
+            setOpen={setOpenPlant}
+            setValue={(val) => handleChange("plant", val)}
+            setItems={setItemsPlant}
+            placeholder={i18n.t("select_plant")}
+            modalTitle={i18n.t("select_plant")}
+          />
+
+          <Text style={styles.label}>{i18n.t("label_department")}</Text>
+          <Dropdown
+            open={openDepartemen}
+            value={formData.departemen}
+            items={itemsDepartemen}
+            setOpen={setOpenDepartemen}
+            setValue={(val) => handleChange("departemen", val)}
+            setItems={setItemsDepartemen}
+            placeholder={i18n.t("select_department")}
+            modalTitle={i18n.t("select_department")}
+          />
+
+          <Text style={styles.label}>{i18n.t("label_birthdate")}</Text>
+          <TouchableOpacity style={styles.input} onPress={showDatePicker}>
+            <Text>
+              {formatTanggal(formData.tanggalLahir) ||
+                i18n.t("select_birthdate")}
+            </Text>
+          </TouchableOpacity>
+
+          <DateTimePickerModal
+            isVisible={isDatePickerVisible}
+            mode="date"
+            onConfirm={handleConfirmDate}
+            onCancel={hideDatePicker}
+            date={
+              formData.tanggalLahir
+                ? new Date(formData.tanggalLahir)
+                : new Date()
+            }
+            locale="id-ID"
+            themeVariant="light"
+          />
+
+          <Text style={styles.label}>Alamat</Text>
+
+          <TouchableOpacity
+            style={styles.input}
+            onPress={() =>
+              navigation.navigate("AlamatAdd", {
+                onSelect: (alamatDipilih) => {
+                  handleChange("alamat", alamatDipilih);
+                },
+              })
+            }
+          >
+            <Text style={{ color: "#007bff", fontWeight: "bold" }}>
+              Ubah Alamat
+            </Text>
+          </TouchableOpacity>
+
+          <Text style={{ marginTop: 8, fontSize: 14, color: "#444" }}>
+            Alamat Anda saat ini:
           </Text>
-        </TouchableOpacity>
-
-        <DateTimePickerModal
-          isVisible={isDatePickerVisible}
-          mode="date"
-          onConfirm={handleConfirmDate}
-          onCancel={hideDatePicker}
-          date={
-            formData.tanggalLahir ? new Date(formData.tanggalLahir) : new Date()
-          }
-          locale="id-ID"
-          themeVariant="light"
-        />
-
-        <Text style={styles.label}>Alamat</Text>
-
-        <TouchableOpacity
-          style={styles.input}
-          onPress={() =>
-            navigation.navigate("AlamatAdd", {
-              onSelect: (alamatDipilih) => {
-                handleChange("alamat", alamatDipilih);
-              },
-            })
-          }
-        >
-          <Text style={{ color: "#007bff", fontWeight: "bold" }}>
-            Ubah Alamat
+          <Text style={{ marginBottom: 12, color: "#000" }}>
+            {formData.alamat.alamat || "Belum ada alamat yang dipilih"}
           </Text>
-        </TouchableOpacity>
-
-        <Text style={{ marginTop: 8, fontSize: 14, color: "#444" }}>
-          Alamat Anda saat ini:
-        </Text>
-        <Text style={{ marginBottom: 12, color: "#000" }}>
-          {formData.alamat.alamat || "Belum ada alamat yang dipilih"}
-        </Text>
-      </ScrollView>
+        </ScrollView>
       </SafeAreaView>
       <View style={styles.fixedButtonContainer}>
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>

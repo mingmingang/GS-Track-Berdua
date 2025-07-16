@@ -33,6 +33,12 @@ const EditProfile = () => {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
+  const [departemenValue, setDepartemenValue] = useState(
+    user?.departemen || ""
+  );
+
+  const [plantValue, setPlantValue] = useState(user?.plant || "");
+
   const [formData, setFormData] = useState({
     npk: user?.npk || "",
     namaKaryawan: user?.namaKaryawan || "",
@@ -110,7 +116,7 @@ const EditProfile = () => {
         namaKaryawan: user.namaKaryawan || "",
         email: user.email || "",
         noHandphone: localPhone,
-        plant: isValidPlant ? user.plant : "", // validasi plant
+        plant: plantValue, // validasi plant
         departemen: isValidDepartemen ? user.departemen : "", // validasi departemen
         tanggalLahir: user.tanggalLahir || "",
         fotoKaryawan: user.fotoKaryawan || "",
@@ -227,12 +233,16 @@ const EditProfile = () => {
       });
     }
   };
+  console.log("Plant value:", formData.plant);
 
   return (
     <View style={styles.container}>
       <Header title={i18n.t("edit_profile")} />
       <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={[styles.form, { flexGrow: 1 }]}>
+        <ScrollView
+          contentContainerStyle={[styles.form, { flexGrow: 1 }]}
+          nestedScrollEnabled={true}
+        >
           <View style={styles.headerSection}>
             <View style={styles.profileWrapper}>
               {formData.fotoKaryawan ? (
@@ -262,7 +272,10 @@ const EditProfile = () => {
           <TextInput
             style={styles.input}
             value={formData.namaKaryawan}
-            onChangeText={(text) => handleChange("namaKaryawan", text)}
+            onChangeText={(text) => {
+              const onlyLetters = text.replace(/[^a-zA-Z\s]/g, "");
+              handleChange("namaKaryawan", onlyLetters);
+            }}
           />
 
           <Text style={styles.label}>{i18n.t("label_email")}</Text>
@@ -291,10 +304,13 @@ const EditProfile = () => {
           <Text style={styles.label}>{i18n.t("label_plant")}</Text>
           <Dropdown
             open={openPlant}
-            value={formData.plant}
+            value={plantValue}
             items={itemsPlant}
             setOpen={setOpenPlant}
-            setValue={(val) => handleChange("plant", val)}
+            setValue={(val) => {
+              setPlantValue(val); // Untuk DropDownPicker
+              handleChange("plant", val); // Untuk formData
+            }}
             setItems={setItemsPlant}
             placeholder={i18n.t("select_plant")}
             modalTitle={i18n.t("select_plant")}
@@ -303,10 +319,13 @@ const EditProfile = () => {
           <Text style={styles.label}>{i18n.t("label_department")}</Text>
           <Dropdown
             open={openDepartemen}
-            value={formData.departemen}
+            value={departemenValue}
             items={itemsDepartemen}
             setOpen={setOpenDepartemen}
-            setValue={(val) => handleChange("departemen", val)}
+            setValue={(val) => {
+              setDepartemenValue(val); // Untuk DropDownPicker
+              handleChange("departemen", val); // Untuk formData
+            }}
             setItems={setItemsDepartemen}
             placeholder={i18n.t("select_department")}
             modalTitle={i18n.t("select_department")}

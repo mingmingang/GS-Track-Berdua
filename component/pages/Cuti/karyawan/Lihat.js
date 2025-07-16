@@ -10,6 +10,7 @@ import styles from "../../../styles/Cuti/DetailCutiStyle";
 import { formatTanggal } from "../../../part/Date";
 import { fetchDetailCuti, fetchTanggalCuti } from "../../../backbone/api";
 import i18n from "../../../backbone/i18n";
+import { downloadLampiranFile } from "../../../utils/DownloadLampiran";
 
 export default function DetailCutiScreen() {
   const navigation = useNavigation();
@@ -64,6 +65,15 @@ export default function DetailCutiScreen() {
         return "#9E9E9E";
     }
   };
+
+    const handleDownload = (filename) => {
+      if (!filename) {
+        Alert.alert("Gagal", "Lampiran tidak tersedia.");
+        return;
+      }
+      downloadLampiranFile(filename);
+    };
+  
 
   return (
     <>
@@ -230,10 +240,16 @@ export default function DetailCutiScreen() {
                         {i18n.t("cuti_detail.berkas_pdf")}
                       </Text>
 
-                      <WebView
+                      {/* <WebView
                         source={{ uri: cuti.fileUri }}
                         style={{ flex: 1, marginTop: 10 }}
-                      />
+                      /> */}
+                        <Text
+                                            style={styles.downloadLink}
+                                            onPress={() => handleDownload(cuti.fileUri)}
+                                          >
+                                            📥 Download
+                                          </Text>
                     </View>
                   );
                 }

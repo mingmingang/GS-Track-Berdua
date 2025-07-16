@@ -20,6 +20,7 @@ const Dropdown = ({
       setValue={setValue}
       setItems={setItems}
       placeholder={placeholder}
+      listMode="SCROLLVIEW" // ✅ Fix nested FlatList error
       placeholderStyle={{
         color: "#888",
         fontFamily: "Poppins_400Regular",

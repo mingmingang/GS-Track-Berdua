@@ -134,6 +134,12 @@ buttonText: {
   fontWeight: 'bold',
   fontSize: 16,
 },
+  downloadLink: {
+    marginTop: 6,
+    color: "#007BFF",
+    fontSize: 14,
+    fontWeight: "600",
+  },
 
 });
 

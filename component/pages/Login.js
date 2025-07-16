@@ -17,6 +17,7 @@ import BASE_URL from "../backbone/Constant";
 import i18n from "../backbone/i18n";
 import { usePushNotif } from "./PushNotifContext";
 import { pushNotifKeUser } from "./notifUtils";
+import * as Notifications from "expo-notifications";
 
 const Login = ({ navigation }) => {
   const {token} = usePushNotif();
@@ -93,6 +94,7 @@ const Login = ({ navigation }) => {
 
         const notifResult = await notifResponse.json();
         console.log(notifResult);
+        await showLocalNotification();
 
         Toast.show({
           type: "success",
@@ -119,6 +121,17 @@ const Login = ({ navigation }) => {
       console.error(error);
     }
   };
+
+    const showLocalNotification = async () => {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "Login Berhasil ✅",
+          body: "Kamu telah berhasil login kedalam aplikasi.",
+          sound: "default",
+        },
+        trigger: null,
+      });
+    };
 
   return (
     <KeyboardAvoidingView

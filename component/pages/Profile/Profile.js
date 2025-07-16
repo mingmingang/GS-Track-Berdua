@@ -127,7 +127,7 @@ export default function Profile() {
             <Ionicons name="chevron-forward" size={18} color="#999" />
           </TouchableOpacity>
 
-          <View style={styles.menuItem}>
+          {/* <View style={styles.menuItem}>
             <View style={styles.menuLeft}>
               <Ionicons name="notifications-outline" size={20} color="#333" />
               <Text style={styles.menuLabel}>{i18n.t("push_notification")}</Text>
@@ -138,7 +138,7 @@ export default function Profile() {
               trackColor={{ false: "#ccc", true: "#3CCA49" }}
               thumbColor="#fff"
             />
-          </View>
+          </View> */}
         </View>
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogoutPress}>

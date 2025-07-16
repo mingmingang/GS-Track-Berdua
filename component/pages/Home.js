@@ -252,7 +252,7 @@ export default function HomeScreen() {
     };
   }, []);
 
-  console.log("usee", user)
+  console.log("usee", user);
 
   return (
     <View style={styles.container}>

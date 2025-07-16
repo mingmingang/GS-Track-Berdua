@@ -255,75 +255,68 @@ export default function KalenderScreen() {
               <TouchableOpacity
                 style={styles.checkinBtn}
                 onPress={async () => {
-                  try {
-                    const current = await getData("lastLogin");
-                    if (!current?.username) {
-                      Alert.alert("Error", "Data login tidak ditemukan.");
-                      return;
-                    }
-
-                    const response = await fetch(
-                      `${BASE_URL}kehadiran/currenthadir`,
-                      {
-                        method: "POST",
-                        headers: {
-                          "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                          idKaryawan: current.username,
-                        }),
-                      }
-                    );
-
-                    const resJson = await response.json();
-
-                    console.log(resJson.data);
-
-                    if (resJson.data === null) {
-                        Alert.alert(
-                          "Info",
-                          "Anda sudah terlambat"
-                        );
-                        return;
-                    }
-
-                    if (resJson.data?.masukAbsen !== null) {
-                      Alert.alert(
-                        "Info",
-                        "Anda sudah melakukan check-in hari ini."
-                      );
-                      return;
-                    }
-
-                    const now = new Date();
-                    const jam = now.getHours();
-                    const menit = now.getMinutes();
-
-                    if (jam < 6) {
-                      Alert.alert(
-                        "Terlalu pagi!",
-                        "Check-in hanya bisa dilakukan mulai jam 06:00 pagi."
-                      );
-                      return;
-                    }
-
-                    if (jam > 9 || (jam === 9 && menit > 0)) {
-                      Alert.alert(
-                        "Terlambat!",
-                        "Check-in hanya bisa dilakukan sebelum jam 09:00."
-                      );
-                      return;
-                    }
-
-                    navigation.navigate("Checkin");
-                  } catch (err) {
-                    console.error("❌ Gagal fetch atau parsing:", err);
-                    Alert.alert(
-                      "Gagal",
-                      "Terjadi kesalahan saat memproses check-in."
-                    );
+                try {
+                  const current = await getData("lastLogin");
+                  if (!current?.username) {
+                    Alert.alert("Error", "Data login tidak ditemukan.");
+                    return;
                   }
-                }}
+
+                  const response = await fetch(
+                    `${BASE_URL}kehadiran/currenthadir`,
+                    {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        idKaryawan: current.username,
+                      }),
+                    }
+                  );
+
+                  const resJson = await response.json();
+                  console.log("🧾 Data:", resJson.data);
+
+                  const now = new Date();
+                  const jam = now.getHours();
+                  const menit = now.getMinutes();
+
+                  if (jam < 6) {
+                    Alert.alert(
+                      "Terlalu pagi!",
+                      "Check-in hanya bisa dilakukan mulai jam 06:00 pagi."
+                    );
+                    return;
+                  }
+
+                  if (jam > 9 || (jam === 9 && menit > 0)) {
+                    Alert.alert(
+                      "Terlambat!",
+                      "Check-in hanya bisa dilakukan sebelum jam 09:00."
+                    );
+                    return;
+                  }
+
+                  const data = resJson.data;
+
+                  if (data && data.masukAbsen !== null) {
+                    Alert.alert("Info", "Anda sudah melakukan check-in hari ini.");
+                    return;
+                  }
+
+                  // ✅ Semua validasi lolos
+                  navigation.navigate("Checkin");
+
+                } catch (err) {
+                  console.error("❌ Gagal fetch atau parsing:", err);
+                  Alert.alert(
+                    "Gagal",
+                    "Terjadi kesalahan saat memproses check-in."
+                  );
+                }
+              }}
+
               >
                 <Text style={styles.checkBtnText}>Check-in</Text>
               </TouchableOpacity>
@@ -338,29 +331,27 @@ export default function KalenderScreen() {
                       return;
                     }
 
-                    const response = await fetch(
-                      `${BASE_URL}kehadiran/currenthadir`,
-                      {
-                        method: "POST",
-                        headers: {
-                          "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                          idKaryawan: current.username,
-                        }),
-                      }
-                    );
+                    const response = await fetch(`${BASE_URL}kehadiran/currenthadir`, {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        idKaryawan: current.username,
+                      }),
+                    });
 
                     const resJson = await response.json();
                     console.log("✅ Response:", resJson);
 
-                    if (!resJson.data) {
-                      Alert.alert("Info", "Anda sudah terlambat.");
+                    const data = resJson.data;
+
+                    if (!data) {
+                      Alert.alert("Info", "Anda belum melakukan check-in.");
                       return;
                     }
 
-                    const { masukAbsen, keluarAbsen, indikatorKehadiran } =
-                      resJson.data;
+                    const { masukAbsen, keluarAbsen, indikatorKehadiran } = data;
 
                     if (indikatorKehadiran === 0) {
                       Alert.alert("Info", "Anda sudah tercatat alpa.");
@@ -388,8 +379,9 @@ export default function KalenderScreen() {
                       return;
                     }
 
-                    // Lolos validasi
+                    // ✅ Lolos semua validasi
                     navigation.navigate("Checkout");
+
                   } catch (err) {
                     console.error("❌ Gagal fetch atau parsing:", err);
                     Alert.alert(
@@ -398,6 +390,7 @@ export default function KalenderScreen() {
                     );
                   }
                 }}
+
               >
                 <Text style={styles.checkBtnText}>Check-out</Text>
               </TouchableOpacity>

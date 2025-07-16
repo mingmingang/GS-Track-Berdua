@@ -351,6 +351,23 @@ export const fetchDetailCuti = async (cutiId) => {
   }
 };
 
+export const fetchTanggalCuti = async (cutiId) => {
+  if (!cutiId) return [];
+
+  try {
+    const ip = await getServerIP();
+    const BASE_URL = `http://${ip}:8080`;
+
+    const response = await fetch(`${BASE_URL}/cuti-detail/by-cuti-id/${cutiId}`);
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    console.error("Gagal mengambil detail tanggal cuti:", err);
+    return [];
+  }
+};
+
+
 export const fetchLastCutiId = async () => {
   const ip = await getServerIP();
   const response = await fetch(`http://${ip}:8080/cuti`);

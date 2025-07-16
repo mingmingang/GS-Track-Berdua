@@ -14,12 +14,14 @@ import Header from "../../../backbone/Header";
 import { ActivityIndicator } from "react-native";
 import styles from "../../../styles/Cuti/PembatalanStyles";
 import { formatTanggal, generateTanggalCuti } from "../../../part/Date";
-import { fetchDetailCuti } from "../../../backbone/api";
+import { fetchDetailCuti, fetchTanggalCuti } from "../../../backbone/api";
+import { getServerIP } from "../../../backbone/ApiConfig";
 
 export default function PembatalanCutiScreen() {
   const [checkedDates, setCheckedDates] = useState({});
   const navigation = useNavigation();
   const [alasan, setAlasan] = useState("");
+  const [tanggalCutiList, setTanggalCutiList] = useState([]);
 
   const toggleDate = (tanggal) => {
     setCheckedDates((prev) => ({
@@ -27,13 +29,61 @@ export default function PembatalanCutiScreen() {
       [tanggal]: !prev[tanggal],
     }));
   };
+  const convertToSqlDate = (tanggalStr) => {
+  const [day, monthStr, year] = tanggalStr.split(" ");
+  const monthMap = {
+    Jan: "01", Feb: "02", Mar: "03", Apr: "04",
+    May: "05", Jun: "06", Jul: "07", Aug: "08",
+    Sep: "09", Oct: "10", Nov: "11", Dec: "12",
+  };
+  const month = monthMap[monthStr];
+  return `${year}-${month}-${day.padStart(2, "0")}`; // yyyy-MM-dd
+};
 
-  const handleSubmit = () => {
-    console.log(
-      "Tanggal dibatalkan:",
-      Object.keys(checkedDates).filter((k) => checkedDates[k])
+
+  const handleSubmit = async () => {
+    const selectedDates = Object.keys(checkedDates).filter(
+      (k) => checkedDates[k]
     );
-    console.log("Alasan:", alasan);
+    if (selectedDates.length === 0) {
+      alert("Pilih minimal satu tanggal untuk dibatalkan.");
+      return;
+    }
+
+    const formattedDates = selectedDates.map(convertToSqlDate);
+
+    console.log("tanggalnya", formattedDates);
+    try {
+      const ip = await getServerIP();
+      const BASE_URL = `http://${ip}:8080`;
+
+      const response = await fetch(
+        `${BASE_URL}/cuti-detail/update-status?cutiId=${cutiId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            tanggalList: formattedDates,
+            alasan: alasan,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("Pembatalan tanggal cuti berhasil.");
+        navigation.goBack();
+      } else {
+        console.error(result);
+        alert("Gagal membatalkan cuti.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan.");
+    }
   };
 
   const route = useRoute();
@@ -46,9 +96,13 @@ export default function PembatalanCutiScreen() {
       if (!cutiId) return;
       try {
         const data = await fetchDetailCuti(cutiId);
+        const tanggalList = await fetchTanggalCuti(cutiId);
+
         setCuti(data);
+        setTanggalCutiList(tanggalList);
       } catch (err) {
         setCuti(null);
+        setTanggalCutiList([]);
       }
     };
 
@@ -110,31 +164,29 @@ export default function PembatalanCutiScreen() {
               <Text style={styles.tableHeaderText}>Tanggal</Text>
               <Text style={styles.tableHeaderText}>Batalkan</Text>
             </View>
-            {generateTanggalCuti(cuti.mulaiDari, cuti.sampaiDengan).map(
-              (tgl, idx) => {
-                const tanggalStr = formatTanggal(tgl);
-                return (
-                  <View key={idx} style={styles.tableRow}>
-                    <Text style={styles.tableText}>{tanggalStr}</Text>
-                    <TouchableOpacity
-                      onPress={() => toggleDate(tanggalStr)}
-                      style={[
-                        styles.checkbox,
-                        {
-                          backgroundColor: checkedDates[tanggalStr]
-                            ? "#21376A"
-                            : "#fff",
-                        },
-                      ]}
-                    >
-                      {checkedDates[tanggalStr] && (
-                        <MaterialIcons name="check" size={16} color="white" />
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                );
-              }
-            )}
+            {tanggalCutiList.map((item, idx) => {
+              const tanggalStr = formatTanggal(item.tanggalCuti);
+              return (
+                <View key={idx} style={styles.tableRow}>
+                  <Text style={styles.tableText}>{tanggalStr}</Text>
+                  <TouchableOpacity
+                    onPress={() => toggleDate(tanggalStr)}
+                    style={[
+                      styles.checkbox,
+                      {
+                        backgroundColor: checkedDates[tanggalStr]
+                          ? "#21376A"
+                          : "#fff",
+                      },
+                    ]}
+                  >
+                    {checkedDates[tanggalStr] && (
+                      <MaterialIcons name="check" size={16} color="white" />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
           </View>
 
           <Text style={styles.label}>Alasan Pembatalan</Text>

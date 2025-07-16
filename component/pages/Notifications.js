@@ -158,7 +158,6 @@ export default function NotificationScreen() {
           }),
         });
 
-        // Update lokal state biar langsung kebaca
         setNotifications((prev) =>
           prev.map((n) =>
             n.idNotif === notif.idNotif ? { ...n, statusDibaca: 1 } : n
@@ -170,11 +169,10 @@ export default function NotificationScreen() {
     }
   };
 
-  // Fetch data dari API
   const fetchNotifications = async () => {
     try {
       const user = await getData("lastLogin");
-
+      console.log("userrr", user.username)
       const response = await fetch(`${BASE_URL}notifikasi/getAll`, {
         method: "POST",
         headers: {
@@ -184,6 +182,7 @@ export default function NotificationScreen() {
           idKaryawan: user.username,
         }),
       });
+      console.log("responn", response);
 
       const json = await response.json();
       console.log("Data notifikasi:", json);

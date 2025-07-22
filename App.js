@@ -37,6 +37,7 @@ import IMPScreen from "./component/pages/IMP/karyawan/Index";
 import TambahIMPScreen from "./component/pages/IMP/karyawan/Index";
 import FilterIMPScreen from "./component/pages/IMP/karyawan/Filter";
 import DetailIMPScreen from "./component/pages/IMP/karyawan/Lihat";
+import DashboardScreen from "./component/pages/Dashboard/Index";
 
 import ReimbursementScreen from "./component/pages/Reimbursement/Karyawan/Index";
 import TambahReimbursementScreen from "./component/pages/Reimbursement/Karyawan/Tambah";
@@ -229,6 +230,11 @@ const AppStack = () => (
     <Stack.Screen
       name="LihatIMP"
       component={DetailIMPScreen}
+      options={{ animation: "slide_from_right", headerShown: false }}
+    />
+    <Stack.Screen
+      name="Dashboard"
+      component={DashboardScreen}
       options={{ animation: "slide_from_right", headerShown: false }}
     />
 

@@ -90,6 +90,12 @@ const menuItems = [
     iconType: "MaterialIcons",
     color: "#B4F1EE",
   },
+  {
+    titleKey: "menu_dashboard",
+    icon: "dashboard",
+    iconType: "MaterialIcons",
+    color: "#A5D6A7",
+  }
 ];
 
 export default function HomeScreen() {
@@ -389,6 +395,9 @@ export default function HomeScreen() {
                   break;
                 case "menu_request":
                   navigation.navigate("PermintaanBerkas");
+                  break;
+                case "menu_dashboard":
+                  navigation.navigate("Dashboard");
                   break;
                 case "menu_reimburse":
                   navigation.navigate(

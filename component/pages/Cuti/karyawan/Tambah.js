@@ -5,7 +5,8 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
-  Image
+  Image,
+  Alert
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -32,6 +33,7 @@ import { usePushNotif } from "../../PushNotifContext";
 import { pushNotifKeUser } from "../../notifUtils";
 import BASE_URL from "../../../backbone/Constant";
 import { sendPushNotification } from "../../ExpoClientPushNotification";
+
 
 const TambahCutiScreen = () => {
   const { token } = usePushNotif();
@@ -274,113 +276,131 @@ const TambahCutiScreen = () => {
     }));
   }, [tipeCutiKhusus]);
 
-  const handleSubmit = async () => {
-    try {
-      const today = new Date();
+const handleSubmit = async () => {
+  try {
+    // Add confirmation alert
+    Alert.alert(
+      "Konfirmasi",
+      "Anda yakin ingin menambahkan pengajuan ini?",
+      [
+        {
+          text: "Batal",
+          style: "cancel"
+        },
+        {
+          text: "Ya",
+          onPress: async () => {
+            try {
+              const today = new Date();
 
-      let uploadedFileName = "";
-      if (formData.fileUri) {
-        uploadedFileName = await uploadLampiran(
-          formData.fileUri,
-          formData.fileName,
-          "cuti/upload-lampiran"
-        );
-      }
+              let uploadedFileName = "";
+              if (formData.fileUri) {
+                uploadedFileName = await uploadLampiran(
+                  formData.fileUri,
+                  formData.fileName,
+                  "cuti/upload-lampiran"
+                );
+              }
 
-      const subTipe = (() => {
-        if (formData.tipeCuti === "Cuti Khusus" && formData.tipeCutiKhusus) {
-          return `${formData.tipeCutiKhusus} - ${
-            subTipeCutiOptions[formData.tipeCutiKhusus] || ""
-          }`;
-        } else if (formData.tipeCuti === "Cuti Pribadi") {
-          return "CP - Cuti Pribadi";
-        } else if (formData.tipeCuti === "Cuti Besar") {
-          return "CB - Cuti Besar";
-        } else {
-          return null;
-        }
-      })();
+              const subTipe = (() => {
+                if (formData.tipeCuti === "Cuti Khusus" && formData.tipeCutiKhusus) {
+                  return `${formData.tipeCutiKhusus} - ${
+                    subTipeCutiOptions[formData.tipeCutiKhusus] || ""
+                  }`;
+                } else if (formData.tipeCuti === "Cuti Pribadi") {
+                  return "CP - Cuti Pribadi";
+                } else if (formData.tipeCuti === "Cuti Besar") {
+                  return "CB - Cuti Besar";
+                } else {
+                  return null;
+                }
+              })();
 
-      const payload = {
-        cutiId: formData.cutiId,
-        npk: user?.npk,
-        tipeCuti: formData.tipeCuti,
-        subTipeCuti: subTipe,
-        mulaiDari: new Date(selectedStartDate).toISOString().split("T")[0],
-        sampaiDengan: new Date(selectedEndDate).toISOString().split("T")[0],
-        durasi: durasi,
-        status: "Menunggu Persetujuan",
-        alasan: formData.keterangan,
-        lampiran: uploadedFileName || "",
-        tanggalPengajuan: today.toISOString().split("T")[0],
-        masaBerlakuCuti: selectedEndDate.toISOString().split("T")[0],
-        jenisCuti: formData.tipeCuti,
-        tanggalAkhir: selectedEndDate.toISOString().split("T")[0],
-        tanggalAwal: selectedStartDate.toISOString().split("T")[0],
-      };
+              const payload = {
+                cutiId: formData.cutiId,
+                npk: user?.npk,
+                tipeCuti: formData.tipeCuti,
+                subTipeCuti: subTipe,
+                mulaiDari: new Date(selectedStartDate).toISOString().split("T")[0],
+                sampaiDengan: new Date(selectedEndDate).toISOString().split("T")[0],
+                durasi: durasi,
+                status: "Menunggu Persetujuan",
+                alasan: formData.keterangan,
+                lampiran: uploadedFileName || "",
+                tanggalPengajuan: today.toISOString().split("T")[0],
+                masaBerlakuCuti: selectedEndDate.toISOString().split("T")[0],
+                jenisCuti: formData.tipeCuti,
+                tanggalAkhir: selectedEndDate.toISOString().split("T")[0],
+                tanggalAwal: selectedStartDate.toISOString().split("T")[0],
+              };
 
-      const { response, result } = await submitPengajuanCuti(payload);
+              const { response, result } = await submitPengajuanCuti(payload);
 
-      if (response.ok) {
-        Toast.show({
-          type: "success",
-          text1: "Berhasil",
-          text2: "Pengajuan cuti berhasil disimpan.",
-        });
+              if (response.ok) {
+                Toast.show({
+                  type: "success",
+                  text1: "Berhasil",
+                  text2: "Pengajuan cuti berhasil disimpan.",
+                });
 
-        const now = new Date();
-        const formattedDate = now.toLocaleString("id-ID", {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-        // const ip = await getServerIP();
+                const now = new Date();
+                const formattedDate = now.toLocaleString("id-ID", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
 
-        try {
-          const notifResponse = await fetch(
-            `${BASE_URL}notifikasi/save`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                idKaryawan: user?.npk,
-                judulNotifikasi: "Pengajuan Cuti",
-                pesanNotifikasi: `Pengajuan cuti Anda berhasil dikirim pada ${formattedDate}.`,
-                tipeNotif: 2,
-              }),
+                try {
+                  const notifResponse = await fetch(
+                    `${BASE_URL}notifikasi/save`,
+                    {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        idKaryawan: user?.npk,
+                        judulNotifikasi: "Pengajuan Cuti",
+                        pesanNotifikasi: `Pengajuan cuti Anda berhasil dikirim pada ${formattedDate}.`,
+                        tipeNotif: 2,
+                      }),
+                    }
+                  );
+
+                  sendPushNotification(token,"Pengajuan Cuti",`Pengajuan cuti Anda berhasil dikirim pada ${formattedDate}.`);
+
+                  const notifResult = await notifResponse.json();
+                  console.log("Notifikasi terkirim:", notifResult);
+                } catch (notifError) {
+                  console.log("Gagal mengirim notifikasi:", notifError);
+                }
+
+                console.log("Before showLocalNotification()");
+                await showLocalNotification();
+                console.log("After showLocalNotification()");
+
+                navigation.goBack();
+              } else {
+                console.error("Gagal:", result);
+                Toast.show({
+                  type: "error",
+                  text1: "Gagal",
+                  text2: "Pengajuan cuti gagal dikirim.",
+                });
+              }
+            } catch (error) {
+              console.error("Error saat submit:", error);
+              alert("Terjadi kesalahan saat mengajukan cuti.");
             }
-          );
-
-          sendPushNotification(token,"Pengajuan Cuti",`Pengajuan cuti Anda berhasil dikirim pada ${formattedDate}.`);
-
-          const notifResult = await notifResponse.json();
-          console.log("Notifikasi terkirim:", notifResult);
-        } catch (notifError) {
-          console.log("Gagal mengirim notifikasi:", notifError);
+          }
         }
-
-        console.log("Before showLocalNotification()");
-        await showLocalNotification();
-        console.log("After showLocalNotification()");
-
-        navigation.goBack();
-      } else {
-        console.error("Gagal:", result);
-        Toast.show({
-          type: "error",
-          text1: "Gagal",
-          text2: "Pengajuan cuti gagal dikirim.",
-        });
-      }
-    } catch (error) {
-      console.error("Error saat submit:", error);
-      alert("Terjadi kesalahan saat mengajukan cuti.");
-    }
-  };
-
+      ]
+    );
+  } catch (error) {
+    console.error("Error saat menampilkan alert:", error);
+  }
+};
   useEffect(() => {
     const requestPermissions = async () => {
       if (Device.isDevice) {

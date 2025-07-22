@@ -255,6 +255,8 @@ export default function KalenderScreen() {
               <TouchableOpacity
                 style={styles.checkinBtn}
                 onPress={async () => {
+                  navigation.navigate("Checkin");
+                  return;
                 try {
                   const current = await getData("lastLogin");
                   if (!current?.username) {
@@ -290,7 +292,7 @@ export default function KalenderScreen() {
                     return;
                   }
 
-                  if (jam > 9 || (jam === 9 && menit > 0)) {
+                  if (jam > 11 || (jam === 11 && menit > 0)) {
                     Alert.alert(
                       "Terlambat!",
                       "Check-in hanya bisa dilakukan sebelum jam 09:00."
@@ -324,6 +326,8 @@ export default function KalenderScreen() {
               <TouchableOpacity
                 style={styles.checkoutBtn}
                 onPress={async () => {
+                  navigation.navigate("Checkout");
+                  return;
                   try {
                     const current = await getData("lastLogin");
                     if (!current?.username) {

@@ -38,7 +38,7 @@ const NotificationIcon = ({ navigation }) => {
         console.warn("⚠️ Response error:", data);
       }
     } catch (err) {
-      console.error("❌ Gagal fetch notifikasi:", err);
+      //console.error("❌ Gagal fetch notifikasi:", err);
     }
   };
 

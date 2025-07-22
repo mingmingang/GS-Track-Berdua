@@ -27,6 +27,7 @@ const DaftarDokumenScreen = () => {
 
       if (folderKey === "cuti") {
         const data = await fetchCutiListAPI(user?.npk, "", "Semua");
+        console.log(data);
 
         const formatted = data.map((item) => ({
           id: item.id?.toString() || Math.random().toString(),

@@ -29,6 +29,12 @@ const getData = async (key) => {
 
 const getNotifIconProps = (tipeNotif) => {
   switch (tipeNotif) {
+     case 0: // Kehadiran
+      return {
+        icon: "login",
+        iconType: "MaterialIcons",
+        bgColor: "#c8ffbfff",
+      };
     case 1: // Kehadiran
       return {
         icon: "home",

@@ -140,6 +140,7 @@ export default function HomeScreen() {
         // console.log("📥 Response kehadiran:", result);
 
         if (result.result === 200 && result.data) {
+          console.log("ress", result.data);
           const masuk = result.data.masukAbsen;
           const keluar = result.data.keluarAbsen;
 
@@ -150,6 +151,8 @@ export default function HomeScreen() {
             const menit = date.getMinutes().toString().padStart(2, "0");
             return `${jam}:${menit}`;
           };
+
+          console.log("masukk", masuk);
 
           setJamMasuk(formatJam(masuk));
           setJamKeluar(formatJam(keluar));

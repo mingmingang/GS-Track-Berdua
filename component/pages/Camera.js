@@ -16,7 +16,7 @@ import CameraButton from "./CameraButton";
 import { useNavigation } from "@react-navigation/native";
 import { usePushNotif } from "./PushNotifContext";
 import { pushNotifKeUser } from "./notifUtils";
-
+import * as Notifications from "expo-notifications";
 
 const getData = async (key) => {
   try {
@@ -162,6 +162,12 @@ export default function CameraScreen({mode = "checkin"}) {
             tipeNotif: 1,
           }),
       });
+      
+      if(optCheck == "Checkin"){
+             await showLocalNotification();
+      } else {
+        await showCheckoutNotification();
+      }
 
       pushNotifKeUser(token,`Berhasil ${optCheck}!`,`Anda telah berhasil ${optCheck.toLowerCase()} pada jam ${formatWaktu} tanggal ${formatTanggal}`);
 
@@ -180,6 +186,28 @@ export default function CameraScreen({mode = "checkin"}) {
       setLoading(false);
     }
   };
+
+   const showLocalNotification = async () => {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: "Anda berhasil check in ✅",
+            body: "Kamu telah berhasil check in hari ini.",
+            sound: "default",
+          },
+          trigger: null,
+        });
+      };
+
+        const showCheckoutNotification = async () => {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: "Anda berhasil check out ✅",
+            body: "Kamu telah berhasil check out hari ini.",
+            sound: "default",
+          },
+          trigger: null,
+        });
+      };
 
   if (permission == null) {
     return (

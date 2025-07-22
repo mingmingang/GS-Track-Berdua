@@ -86,7 +86,7 @@ const Login = ({ navigation }) => {
             idKaryawan: username,
             judulNotifikasi: "Login Berhasil",
             pesanNotifikasi: `Anda telah berhasil login pada ${formattedDate}`,
-            tipeNotif: 1,
+            tipeNotif: 0,
           }),
         });
 
